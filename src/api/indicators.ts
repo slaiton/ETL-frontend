@@ -2,7 +2,9 @@ import {
  type CertificatesResponse,
 } from "../models/certificates.model";
 
-const BASE_URL = "http://127.0.0.1:8000/v1/indicators";
+const URL = import.meta.env.VITE_API_BASE_URL;
+
+const BASE_URL = URL + "/v1/indicators";
 
 export async function getCertificates(
   start_date: string,
