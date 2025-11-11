@@ -1,0 +1,4 @@
+/etc/crontabs/root
+/etc/shadow
+/etc/shadow-
+/lib/apk/db/lock
