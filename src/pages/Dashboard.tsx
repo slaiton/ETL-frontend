@@ -79,14 +79,11 @@ export default function Dashboard() {
       legend: {
         position: "bottom",
         labels: {
-          color: "#ffffff",
           font: { size: 14 },
         },
       },
       tooltip: {
         enabled: true,
-        titleColor: "#fff",
-        bodyColor: "#fff",
       },
     },
   };
@@ -110,24 +107,12 @@ export default function Dashboard() {
   const barOptions: ChartOptions<"bar"> = {
     responsive: true,
     maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: "top",
-        labels: { color: "#fff" },
-      },
-      tooltip: {
-        enabled: true,
-        titleColor: "#fff",
-        bodyColor: "#fff",
-      },
-    },
+
     scales: {
       x: {
-        ticks: { color: "#fff" },
         grid: { color: "rgba(255,255,255,0.2)" },
       },
       y: {
-        ticks: { color: "#fff" },
         grid: { color: "rgba(255,255,255,0.2)" },
       },
     },
