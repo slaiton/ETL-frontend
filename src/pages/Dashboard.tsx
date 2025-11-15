@@ -118,12 +118,43 @@ export default function Dashboard() {
     },
   };
 
+  const gridLayout: React.CSSProperties = {
+    display: "grid",
+    gridTemplateColumns: "repeat(12, 1fr)",
+    gap: "20px",
+    marginTop: "20px",
+  };
+
+  /* Función para declarar tamaño de 1–12 columnas */
+  const gridItem = (cols: number): React.CSSProperties => ({
+    gridColumn: `span ${cols}`,
+  });
+
+  /* Card para gráficos */
+  const chartCard: React.CSSProperties = {
+    background: "#1e1e1e",
+    borderRadius: "14px",
+    padding: "20px",
+    boxShadow: "0 4px 14px rgba(0,0,0,0.3)",
+  };
+
+  const toolbarStyle: React.CSSProperties = {
+    display: "flex",
+    justifyContent: "flex-end",
+    alignItems: "center",
+    gap: "20px",
+    background: "#1f2937",
+    padding: "12px 20px",
+    borderRadius: "10px",
+    marginBottom: "20px",
+    color: "white",
+  };
+
   return (
     <div style={styles.container}>
-      <h1 style={styles.title}>Dashboard de Indicadores</h1>
 
       {/* Filtros */}
-      <form onSubmit={handleFilter} style={styles.form}>
+      <form onSubmit={handleFilter} style={toolbarStyle}>
         <label style={styles.label}>
           Fecha inicio:
           <input
@@ -162,39 +193,91 @@ export default function Dashboard() {
         </button>
       </form>
 
-      {/* Totales */}
-      <div style={styles.totals}>
-        <div style={{ ...styles.totalItem, color: "#36A2EB" }}>
-          Emitidos: {data.general.issued}
-        </div>
-        <div style={{ ...styles.totalItem, color: "#FF6384" }}>
-          Cancelados: {data.general.cancelled}
-        </div>
-      </div>
 
-      {/* Gráficos */}
-      <div style={styles.chartsContainer}>
-        <div style={styles.chartBox}>
+      <div style={gridLayout} className="grid-responsive">
+
+        {/* Card Totales */}
+        <div style={{ ...gridItem(4), ...baseCardStyle, color: "#36eb6cff" }}>
+          <div style={styles.cardTitle}>Certificados</div>
+          <div style={{ ...styles.cardNumber, color: "#36eb6cff" }}>
+            {data.general.issued + data.general.cancelled}
+          </div>
+        </div>
+
+        <div style={{ ...gridItem(4), ...baseCardStyle, color: "#36A2EB" }}>
+          <div style={styles.cardTitle}>Emitidos</div>
+          <div style={{ ...styles.cardNumber, color: "#36A2EB" }}>
+            {data.general.issued}
+          </div>
+        </div>
+
+        <div style={{ ...gridItem(4), ...baseCardStyle, color: "#FF6384" }}>
+          <div style={styles.cardTitle}>Cancelados</div>
+          <div style={{ ...styles.cardNumber, color: "#FF6384" }}>
+            {data.general.cancelled}
+          </div>
+        </div>
+
+        {/* PIE CHART (4 columnas) */}
+        <div style={{ ...gridItem(4), ...chartCard }}>
           <div style={styles.chartWrapper}>
             <Pie data={pieData} options={pieOptions} />
           </div>
         </div>
 
-        <div style={styles.chartBox}>
+        {/* BAR CHART (8 columnas) */}
+        <div style={{ ...gridItem(8), ...chartCard }}>
           <div style={styles.chartWrapper}>
             <Bar data={barData} options={barOptions} />
           </div>
         </div>
       </div>
+
     </div>
   );
 }
 
+
+const baseCardStyle: React.CSSProperties = {
+  background: "#1e1e1e",
+  borderRadius: "14px",
+  padding: "20px",
+  color: "white",
+  boxShadow: "0 4px 14px rgba(0,0,0,0.3)",
+  alignItems: "center",
+  justifyContent: "center",
+  fontSize: "25px",
+  fontWeight: 500,
+};
+
+
 const styles: Record<string, React.CSSProperties> = {
+
+  cardTitle: {
+    fontSize: "1rem",
+    fontWeight: 600,
+    textAlign: "center",
+    opacity: 0.8,
+    marginBottom: "8px",
+  },
+  cardNumber: {
+    fontSize: "2.6rem",
+    fontWeight: 800,
+    textAlign: "center",
+    lineHeight: "1",
+    marginTop: "4px",
+  },
+  chartWrapper: {
+    width: "100%",
+    height: "100%",
+    padding: "10px",
+    boxSizing: "border-box",
+  },
+
   container: {
     textAlign: "center",
     padding: "20px",
-    maxWidth: "1200px",
+    maxWidth: "100%",
     margin: "0 auto",
   },
   title: {
@@ -244,19 +327,9 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: "1.5rem",
     fontWeight: "bold",
   },
-  chartsContainer: {
-    display: "flex",
-    flexWrap: "wrap",
-    justifyContent: "center",
-    gap: "20px",
-  },
   chartBox: {
     flex: "1 1 350px",
     maxWidth: "600px",
     minWidth: "300px",
-  },
-  chartWrapper: {
-    width: "100%",
-    height: "400px",
-  },
+  }
 };
