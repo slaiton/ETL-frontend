@@ -305,7 +305,7 @@ const styles: Record<string, React.CSSProperties> = {
     display: "flex",
     gap: "15px",
     alignItems: "center",
-    justifyContent: "flex-end",
+    justifyContent: "center",
     flexWrap: "wrap",    
   },
   label: {
