@@ -232,7 +232,7 @@ export default function Dashboard() {
         </div>
 
         {/* BAR CHART (8 columnas) */}
-        <div style={{ ...gridItem(8), ...chartCard }}>
+        <div style={{ ...gridItem(4), ...chartCard }}>
           <div style={styles.chartWrapper}>
             <Bar data={barData} options={barOptions} />
           </div>
