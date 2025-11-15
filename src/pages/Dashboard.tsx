@@ -120,7 +120,7 @@ export default function Dashboard() {
 
   const gridLayout: React.CSSProperties = {
     display: "grid",
-    width: "100%",   
+    width: "100%",
     gridTemplateColumns: "repeat(12, 1fr)",
     gap: "20px",
     marginTop: "20px",
@@ -157,45 +157,57 @@ export default function Dashboard() {
 
       {/* Filtros */}
       <form onSubmit={handleFilter} style={toolbarStyle}>
-         <div style={styles.formRow}>
+        <div style={styles.formRow}>
 
-        <label style={styles.label}>
-          Fecha inicio:
-          <input
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            style={styles.input}
-          />
-        </label>
+          <label style={styles.label}>
+            Fecha inicio:
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              style={styles.input}
+            />
+          </label>
 
-        <label style={styles.label}>
-          Fecha fin:
-          <input
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            style={styles.input}
-          />
-        </label>
+          <label style={styles.label}>
+            Fecha fin:
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              style={styles.input}
+            />
+          </label>
 
-        <label style={styles.label}>
-          Periodo:
-          <select
-            value={period}
-            onChange={(e) => setPeriod(e.target.value)}
-            style={styles.select}
-          >
-            <option value="day">Día</option>
-            <option value="week">Semana</option>
-            <option value="month">Mes</option>
-          </select>
-        </label>
+          <label style={styles.label}>
+            Periodo:
+            <select
+              value={period}
+              onChange={(e) => setPeriod(e.target.value)}
+              style={styles.select}
+            >
+              <option value="day">Día</option>
+              <option value="week">Semana</option>
+              <option value="month">Mes</option>
+            </select>
+          </label>
 
-        <button type="submit" style={styles.button}>
-          Aplicar
-        </button>
-         </div>
+          <label style={styles.label}>
+            Vigía:
+            <select
+              value={"2"}          
+              disabled  
+              style={styles.select}
+              name="vigia"
+            >
+              <option value="2">Vigía</option>
+            </select>
+          </label>
+
+          <button type="submit" style={styles.button}>
+            Aplicar
+          </button>
+        </div>
 
       </form>
 
@@ -285,7 +297,7 @@ const styles: Record<string, React.CSSProperties> = {
     padding: "20px",
     maxWidth: "100%",
     margin: "0 auto",
-    minHeight: "100dvh",      
+    minHeight: "100dvh",
     overflowY: "auto",
     boxSizing: "border-box",
   },
@@ -300,13 +312,13 @@ const styles: Record<string, React.CSSProperties> = {
     gap: "10px",
     marginBottom: "20px",
   },
-  
+
   formRow: {
     display: "flex",
     gap: "15px",
     alignItems: "center",
     justifyContent: "center",
-    flexWrap: "wrap",    
+    flexWrap: "wrap",
   },
   label: {
     display: "flex",
