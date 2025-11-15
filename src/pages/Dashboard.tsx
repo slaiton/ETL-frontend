@@ -275,7 +275,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   chartWrapper: {
     width: "100%",
-    minHeight: window.innerWidth < 768 ? "80px" : "400px",
+    minHeight: window.innerWidth < 768 ? "300px" : "400px",
     padding: window.innerWidth < 768 ? "5px" : "10px",
     boxSizing: "border-box",
   },

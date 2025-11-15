@@ -1,12 +1,12 @@
 import type { CSSProperties } from "react";
 
 export const layoutStyles = {
-  container: {
+   container: {
     display: "flex",
-    height: "100vh",
+    flexDirection: "column",
     width: "100%",
-    background: "rgba(29, 25, 25, 1)",
-    overflow: "hidden",
+    minHeight: "100vh",
+    background: "#111827",
   } as CSSProperties,
 
   sidebar: {
@@ -26,10 +26,11 @@ export const layoutStyles = {
   } as CSSProperties,
 
   main: {
-    flex: 1,
-    // marginLeft: "240px",
-  },
-
+    display: "flex",
+    flexDirection: "column",
+    flexGrow: 1,
+    width: "100%",
+  } as CSSProperties,
   navbar: {
     height: "60px",
     background: "white",
@@ -57,5 +58,19 @@ export const layoutStyles = {
   navItemHover: {
     background: "rgba(255,255,255,0.15)",
   } as CSSProperties,
+
+  footer: {
+    marginTop: "auto",
+    padding: "15px 20px",
+    background: "#1f2937",
+    borderTop: "1px solid rgba(255, 255, 255, 0.1)",
+    textAlign: "center",
+  } as CSSProperties,
+
+  footerText: {
+    margin: 0,
+    fontSize: "0.9rem",
+    color: "#9ca3af",
+  },
 
 };
