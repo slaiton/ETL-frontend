@@ -120,9 +120,11 @@ export default function Dashboard() {
 
   const gridLayout: React.CSSProperties = {
     display: "grid",
+    width: "100%",   
     gridTemplateColumns: "repeat(12, 1fr)",
     gap: "20px",
     marginTop: "20px",
+    boxSizing: "border-box",
   };
 
   /* Función para declarar tamaño de 1–12 columnas */
@@ -155,6 +157,8 @@ export default function Dashboard() {
 
       {/* Filtros */}
       <form onSubmit={handleFilter} style={toolbarStyle}>
+         <div style={styles.formRow}>
+
         <label style={styles.label}>
           Fecha inicio:
           <input
@@ -191,6 +195,8 @@ export default function Dashboard() {
         <button type="submit" style={styles.button}>
           Aplicar
         </button>
+         </div>
+
       </form>
 
 
@@ -269,8 +275,8 @@ const styles: Record<string, React.CSSProperties> = {
   },
   chartWrapper: {
     width: "100%",
-    height: "400px",
-    padding: "10px",
+    minHeight: window.innerWidth < 768 ? "80px" : "400px",
+    padding: window.innerWidth < 768 ? "5px" : "10px",
     boxSizing: "border-box",
   },
 
@@ -279,6 +285,9 @@ const styles: Record<string, React.CSSProperties> = {
     padding: "20px",
     maxWidth: "100%",
     margin: "0 auto",
+    minHeight: "100dvh",      
+    overflowY: "auto",
+    boxSizing: "border-box",
   },
   title: {
     fontSize: "2rem",
@@ -290,6 +299,14 @@ const styles: Record<string, React.CSSProperties> = {
     justifyContent: "center",
     gap: "10px",
     marginBottom: "20px",
+  },
+  
+  formRow: {
+    display: "flex",
+    gap: "15px",
+    alignItems: "center",
+    justifyContent: "flex-end",
+    flexWrap: "wrap",    
   },
   label: {
     display: "flex",
@@ -330,6 +347,6 @@ const styles: Record<string, React.CSSProperties> = {
   chartBox: {
     flex: "1 1 350px",
     maxWidth: "600px",
-    minWidth: "300px",
+    minWidth: "100px",
   }
 };
