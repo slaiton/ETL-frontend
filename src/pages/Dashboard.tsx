@@ -193,7 +193,7 @@ export default function Dashboard() {
           </label>
 
           <label style={styles.label}>
-            Vigía:
+            Cliente:
             <select
               value={"2"}          
               disabled  
