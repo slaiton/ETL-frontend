@@ -215,24 +215,31 @@ export default function Dashboard() {
       <div style={gridLayout} className="grid-responsive">
 
         {/* Card Totales */}
-        <div style={{ ...gridItem(4), ...baseCardStyle, color: "#36eb6cff" }}>
+        <div style={{ ...gridItem(3), ...baseCardStyle, color: "#36eb6cff" }}>
           <div style={styles.cardTitle}>Certificados</div>
           <div style={{ ...styles.cardNumber, color: "#36eb6cff" }}>
             {data.general.issued + data.general.cancelled}
           </div>
         </div>
 
-        <div style={{ ...gridItem(4), ...baseCardStyle, color: "#36A2EB" }}>
+        <div style={{ ...gridItem(3), ...baseCardStyle, color: "#36A2EB" }}>
           <div style={styles.cardTitle}>Emitidos</div>
           <div style={{ ...styles.cardNumber, color: "#36A2EB" }}>
             {data.general.issued}
           </div>
         </div>
 
-        <div style={{ ...gridItem(4), ...baseCardStyle, color: "#FF6384" }}>
+        <div style={{ ...gridItem(3), ...baseCardStyle, color: "#FF6384" }}>
           <div style={styles.cardTitle}>Cancelados</div>
           <div style={{ ...styles.cardNumber, color: "#FF6384" }}>
             {data.general.cancelled}
+          </div>
+        </div>
+
+        <div style={{ ...gridItem(3), ...baseCardStyle, color: "#cab70dff" }}>
+          <div style={styles.cardTitle}>Sin Factura</div>
+          <div style={{ ...styles.cardNumber, color: "#cab70dff" }}>
+            {data.general.no_invoice}
           </div>
         </div>
 

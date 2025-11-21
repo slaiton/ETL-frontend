@@ -1,6 +1,7 @@
 export interface CertificatesIndicator {
   issued: number;
   cancelled: number;
+  no_invoice: number;
   start_date: string;
   end_date: string;
   customer_id: number | null;
