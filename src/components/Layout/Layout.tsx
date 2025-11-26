@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { layoutStyles } from "./layout.styles";
-// import Sidebar from "./Sidebar";
+import Sidebar from "./Sidebar";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 
@@ -9,6 +9,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
     <div style={layoutStyles.container}>
       {/* <Sidebar open={sidebarOpen} /> */}
+      <Sidebar open={sidebarOpen}  onLinkClick={() => setSidebarOpen(false)}/>
       <div style={layoutStyles.main}>
         <Navbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
         <div style={layoutStyles.content}>{children}</div>

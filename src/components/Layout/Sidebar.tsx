@@ -1,26 +1,60 @@
 import React from "react";
-import { layoutStyles } from "./layout.styles";
+import { sidebarStyles } from "./layout.styles";
 import { Link } from "react-router-dom";
+import { Home, FileText } from "lucide-react";
+
 
 const modules = [
-  { label: "Dashboard", path: "/" },
+  { label: "Dashboard", path: "/", icon: <Home size={18} /> },
+  { label: "Certificados", path: "/certificates", icon: <FileText size={18} /> },
 ];
 
-const Sidebar: React.FC<{ open?: boolean }> = ({ open = false }) => {
+const Sidebar: React.FC<{ open?: boolean; onLinkClick?: () => void }> = ({
+  open = false,
+  onLinkClick
+}) => {
+
   const sidebarDynamic = {
-    ...layoutStyles.sidebar,
+    ...sidebarStyles.sidebar,
     transform: open ? "translateX(0)" : "translateX(-100%)",
   };
 
-  return (
+ return (
     <aside style={sidebarDynamic}>
-      {modules.map((item) => (
-        <Link key={item.path} to={item.path} style={{ textDecoration: "none" }}>
-          <div style={layoutStyles.navItem}>{item.label}</div>
-        </Link>
-      ))}
+
+      <div style={sidebarStyles.sidebarLogoContainer}>
+        <img
+          src="/tf2.png" // desde public se carga así
+          alt="Logo"
+          style={sidebarStyles.sidebarLogo}
+        />
+      </div>
+
+      {modules.map((item) => {
+
+        // Aquí definimos si este item es activo
+        const isActive = location.pathname === item.path;
+
+        return (
+          <Link
+            key={item.path}
+            to={item.path}
+            style={{ textDecoration: "none" }}
+            onClick={onLinkClick}
+          >
+            <div
+              style={{
+                ...sidebarStyles.navItem,
+                ...(isActive ? sidebarStyles.navItemActive : {}),
+              }}
+            >
+              <span style={sidebarStyles.navIcon}>{item.icon}</span>
+              <span>{item.label}</span>
+            </div>
+          </Link>
+        );
+      })}
     </aside>
   );
 };
-
-export default Sidebar;
+  export default Sidebar;

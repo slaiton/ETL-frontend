@@ -9,21 +9,6 @@ export const layoutStyles = {
     background: "#111827",
   } as CSSProperties,
 
-  sidebar: {
-    width: "240px",
-    background: "#ffffffff",
-    color: "white",
-    padding: "20px 15px",
-    display: "flex",
-    flexDirection: "column",
-    gap: "12px",
-    position: "fixed",
-    left: 0,
-    top: 0,
-    height: "100%",
-    transition: "transform .3s ease",
-    zIndex: 20,
-  } as CSSProperties,
 
   main: {
     display: "flex",
@@ -47,18 +32,6 @@ export const layoutStyles = {
     overflowY: "auto",
   } as CSSProperties,
 
-  navItem: {
-    padding: "12px 15px",
-    borderRadius: "8px",
-    cursor: "pointer",
-    background: "rgba(255,255,255,0.05)",
-    transition: "0.15s",
-  } as CSSProperties,
-
-  navItemHover: {
-    background: "rgba(255,255,255,0.15)",
-  } as CSSProperties,
-
   footer: {
     marginTop: "auto",
     padding: "15px 20px",
@@ -73,4 +46,90 @@ export const layoutStyles = {
     color: "#9ca3af",
   },
 
+  sidebarLogoContainer: {
+  width: "100%",
+  padding: "20px 0",
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "center",
+  borderBottom: "1px solid #2a2a33",
+  
+  marginBottom: "10px",
+} as CSSProperties,
+
+sidebarLogo: {
+  width: "120px",  // Ajusta tamaño
+  objectFit: "contain",
+  borderRadius: "25px",
+} as CSSProperties,
+
 };
+
+export const sidebarStyles = {
+    sidebar: {
+    width: "250px",
+    height: "100vh",
+    background: "linear-gradient(180deg, #223245 0%, #0a203aff 100%)",
+    position: "fixed",
+    left: 0,
+    top: 0,
+    zIndex: 100,
+    overflowY: "auto",
+    paddingTop: "10px",
+    boxShadow: "2px 0 10px rgba(0,0,0,0.4)",
+    transition: "transform 0.3s ease",
+  }  as CSSProperties,
+
+  sidebarLogoContainer: {
+    width: "100%",
+    padding: "25px 0",
+    display: "flex",
+    justifyContent: "center",
+    borderBottom: "1px solid #2a2a33",
+    marginBottom: "10px",
+  }  as CSSProperties,
+
+  sidebarLogo: {
+    width: "130px",
+    objectFit: "contain",
+    borderRadius: "30px",
+    opacity: 0.9,
+  }  as CSSProperties,
+
+  menuContainer: {
+    display: "flex",
+    flexDirection: "column",
+    padding: "10px 0",
+  }  as CSSProperties,
+
+  navItem: {
+    display: "flex",
+    alignItems: "center",
+    gap: "12px",
+    padding: "12px 20px",
+    margin: "4px 12px",
+    borderRadius: "8px",
+    color: "#d0d0d7",
+    cursor: "pointer",
+    transition: "all 0.25s ease",
+    fontSize: "15px",
+  }  as CSSProperties,
+
+  navItemActive: {
+    background: "#27272f",
+    color: "#ffffff",
+    fontWeight: 600,
+    boxShadow: "inset 0 0 8px rgba(255,255,255,0.1)",
+  }  as CSSProperties,
+
+  navIcon: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    opacity: 0.8,
+  }  as CSSProperties,
+
+  navItemHover: {
+    background: "#1e1e25",
+  }  as CSSProperties,
+}

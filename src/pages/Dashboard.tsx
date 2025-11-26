@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Pie, Bar } from "react-chartjs-2";
+import { useNavigate } from "react-router-dom";
 import {
   Chart as ChartJS,
   ArcElement,
@@ -23,10 +24,11 @@ ChartJS.register(
 );
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const today = new Date().toISOString().split("T")[0];
-  const oneMonthAgo = new Date();
-  oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
-  const defaultStart = oneMonthAgo.toISOString().split("T")[0];
+  const firstDayOfMonth = new Date();
+  firstDayOfMonth.setDate(1);
+  const defaultStart = firstDayOfMonth.toISOString().split("T")[0];
 
   const [data, setData] = useState<CertificatesResponse | null>(null);
   const [startDate, setStartDate] = useState(defaultStart);
@@ -195,8 +197,8 @@ export default function Dashboard() {
           <label style={styles.label}>
             Cliente:
             <select
-              value={"2"}          
-              disabled  
+              value={"2"}
+              disabled
               style={styles.select}
               name="vigia"
             >
@@ -236,7 +238,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div style={{ ...gridItem(3), ...baseCardStyle, color: "#cab70dff" }}>
+        <div style={{ ...gridItem(3), ...baseCardStyle, color: "#cab70dff" }} onClick={() => navigate("/certificates")}>
           <div style={styles.cardTitle}>Sin Factura</div>
           <div style={{ ...styles.cardNumber, color: "#cab70dff" }}>
             {data.general.no_invoice}
