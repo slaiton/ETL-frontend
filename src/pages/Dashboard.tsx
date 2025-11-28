@@ -238,7 +238,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div style={{ ...gridItem(3), ...baseCardStyle, color: "#cab70dff" }} onClick={() => navigate("/certificates")}>
+        <div style={{ ...gridItem(3), ...baseCardStyle, color: "#cab70dff" }} onClick={() => navigate("/certificates?invoice=false")}>
           <div style={styles.cardTitle}>Sin Factura</div>
           <div style={{ ...styles.cardNumber, color: "#cab70dff" }}>
             {data.general.no_invoice}

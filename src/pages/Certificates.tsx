@@ -1,51 +1,110 @@
 import { useEffect, useState } from "react";
-
-interface Certificate {
-    id: number;
-    certificate: string;
-    status: string;
-}
+import type { Certificate } from "../models/certificates.model";
+import { getCertificates } from "../api/certificates";
+import { useSearchParams } from "react-router-dom";
 
 export default function Certificates() {
-    const [search, setSearch] = useState("");
-    const [page, setPage] = useState(1);
-    const [limit] = useState(10);
 
+    const [searchParams, setSearchParams] = useSearchParams();
+    const today = new Date();
+    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+
+    const formatDate = (d: Date) =>
+        d.toISOString().split("T")[0]; // "YYYY-MM-DD"
+
+    const startDate =
+        searchParams.get("startDate") || formatDate(firstDay);
+
+    const endDate =
+        searchParams.get("endDate") || formatDate(today);
+
+    const invoice = searchParams.get("invoice") || true.toString();
+
+
+    const [searchField, setSearchField] = useState("consecutive");
+
+    const initialPage = Number(searchParams.get("page")) || 1;
+    const initialSearch = searchParams.get("search") || "";
+    const limit = Number(searchParams.get("limit")) || 10;
+
+    const [search, setSearch] = useState(initialSearch);
+    const [page, setPage] = useState(initialPage);
     const [data, setData] = useState<Certificate[]>([]);
     const [filtered, setFiltered] = useState<Certificate[]>([]);
+    const [loading, setLoading] = useState(false);
+
+    const fetchData = async () => {
+        try {
+            setLoading(true);
+            const response: any = await getCertificates(startDate, endDate, invoice);
+            setData(response["data"]);
+        } catch (error) {
+            console.error("Error cargando datos:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        // Simulación de datos: reemplaza con tu API
-        const fakeData = Array.from({ length: 53 }, (_, i) => ({
-            id: i + 1,
-            certificate: `Certificado #${i + 1}`,
-            status: i % 2 === 0 ? "Activo" : "Inactivo"
-        }));
-
-        setData(fakeData);
+        fetchData();
     }, []);
 
     useEffect(() => {
         const result = data.filter((item) =>
-            item.certificate.toLowerCase().includes(search.toLowerCase())
+            item.consecutive?.toLowerCase().includes(search.toLowerCase())
         );
         setFiltered(result);
-        setPage(1); // Reiniciar paginación al buscar
+        setPage(1);
+
+        setSearchParams({
+            page: "1",
+            search,
+            limit: limit.toString(),
+            startDate,
+            endDate,
+            invoice,
+        });
     }, [search, data]);
 
     // const start = (page - 1) * limit;
     // const paginated = filtered.slice(start, start + limit);
 
+    const start = (page - 1) * limit;
+    const paginated = filtered.slice(start, start + limit);
     const totalPages = Math.ceil(filtered.length / limit);
+
+    const changePage = (newPage: number) => {
+        setPage(newPage);
+
+        setSearchParams({
+            page: newPage.toString(),
+            search,
+            limit: limit.toString(),
+            startDate,
+            endDate,
+            invoice,
+        });
+    };
 
     return (
         <div style={styles.container}>
 
             {/* 🔍 Buscador */}
             <div style={styles.searchBox}>
+                <select
+                    value={searchField}
+                    onChange={(e) => setSearchField(e.target.value)}
+                    style={styles.searchSelect}
+                >
+                    <option value="consecutive">Consecutivo</option>
+                    <option value="waybill">Waybill</option>
+                    <option value="factus_bill_consecutive">Certificado</option>
+                    {/* <option value="client">Cliente</option> */}
+                </select>
+
                 <input
                     type="text"
-                    placeholder="Buscar certificados..."
+                    placeholder="Buscar..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     style={styles.searchInput}
@@ -58,30 +117,62 @@ export default function Certificates() {
                     <tr>
                         <th>ID</th>
                         <th>Certificado</th>
-                        <th>Estado</th>
+                        <th>Factura</th>
+                        <th>Waybill</th>
+                        <th>Política</th>
+                        <th>Inicio</th>
+                        <th>Fin</th>
+                        <th>Cliente</th>
+                        <th>Factura</th>
+                        <th>Valor</th>
                     </tr>
                 </thead>
-                {/* <tbody>
-                    {paginated.map((item) => (
-                        <tr
-                            key={item.id}
-                            style={styles.tableRow}
-                            onMouseEnter={(e) => (e.currentTarget.style.background = "#26262e")}
-                            onMouseLeave={(e) => (e.currentTarget.style.background = "#1e1e24")}
-                        >
-                            <td style={styles.tableCell}>{item.id}</td>
-                            <td style={styles.tableCell}>{item.certificate}</td>
-                            <td style={styles.tableCell}>{item.status}</td>
+                <tbody>
+                    {loading ? (
+                        <tr>
+                            <td colSpan={8} style={styles.noData}>Cargando...</td>
                         </tr>
-                    ))}
-                </tbody> */}
-            </table>
+                    ) : paginated.length === 0 ? (
+                        <tr>
+                            <td colSpan={8} style={styles.noData}>Sin resultados</td>
+                        </tr>
+                    ) : (
+                        paginated.map((item) => (
+                            <tr key={item.id} style={styles.tableRow}>
+                                <td style={styles.tableCell}>{item.id}</td>
+                                <td style={styles.tableCell}>{item.consecutive}</td>
+                                <td style={styles.tableCell}>{item.factus_bill_consecutive}</td>
+                                <td style={styles.tableCell}>{item.policy_id}</td>
+                                <td style={styles.tableCell}>
+                                    {item.start_at ? item.start_at.split("T")[0] : "—"}
+                                </td>
 
+                                <td style={styles.tableCell}>
+                                    {item.end_at ? item.end_at.split("T")[0] : "—"}
+                                </td>
+                                <td style={styles.tableCell}>{item.customer_id ?? "—"}</td>
+                                <td style={styles.tableCell}>
+                                    {item.bill_url ? (
+                                        <a
+                                            href={item.bill_url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            style={{ color: "#4da6ff" }}
+                                        >
+                                            Ver factura
+                                        </a>
+                                    ) : (
+                                        "—"
+                                    )}
+                                </td>
+                                <td style={styles.tableCell}>{item.billing_price}</td>
+                            </tr>
+                        ))
+                    )}
+                </tbody>
+            </table>
             <div style={styles.pagination}>
-                <button
-                    disabled={page === 1}
-                    onClick={() => setPage(page - 1)}
-                >
+                <button disabled={page === 1} onClick={() => changePage(page - 1)}>
                     Anterior
                 </button>
 
@@ -89,10 +180,7 @@ export default function Certificates() {
                     Página {page} de {totalPages}
                 </span>
 
-                <button
-                    disabled={page === totalPages}
-                    onClick={() => setPage(page + 1)}
-                >
+                <button disabled={page === totalPages} onClick={() => changePage(page + 1)}>
                     Siguiente
                 </button>
             </div>
@@ -113,7 +201,7 @@ const styles = {
     } as React.CSSProperties,
 
     searchInput: {
-        width: "100%",
+        width: "70%",
         padding: "12px 14px",
         fontSize: "15px",
         borderRadius: "8px",
@@ -140,6 +228,7 @@ const styles = {
     } as React.CSSProperties,
 
     tableCell: {
+        textAlign: "center",
         padding: "14px",
         borderBottom: "1px solid #2a2a33",
     } as React.CSSProperties,
@@ -185,5 +274,11 @@ const styles = {
         fontWeight: "500",
         color: "#c9c9d1",
         padding: "10px",
+    } as React.CSSProperties,
+    searchSelect: {
+        padding: "8px",
+        marginRight: "8px",
+        borderRadius: "6px",
+        border: "1px solid #ccc",
     } as React.CSSProperties,
 };

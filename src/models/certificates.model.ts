@@ -18,3 +18,17 @@ export interface CertificatesResponse {
   general: CertificatesIndicator;
   period: CertificatesIndicatorByPeriod[];
 }
+
+export interface Certificate {
+  id: number;
+  consecutive: string;
+  factus_bill_consecutive: string;
+  policy_id: number;
+  start_at: string;      // ISO datetime
+  end_at: string;        // ISO datetime
+  customer_id: number | null;
+  bill_url: string | null;
+  billing_price: string;
+  created_at: string;    // ISO datetime
+  deleted_at: string | null;
+}
