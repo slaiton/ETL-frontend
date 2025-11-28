@@ -119,7 +119,7 @@ export default function Certificates() {
                         <th>Certificado</th>
                         <th>Factura</th>
                         <th>Waybill</th>
-                        <th>Política</th>
+                        <th>Poliza</th>
                         <th>Inicio</th>
                         <th>Fin</th>
                         <th>Cliente</th>
