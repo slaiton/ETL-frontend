@@ -25,7 +25,7 @@ export default function Certificates() {
 
     const initialPage = Number(searchParams.get("page")) || 1;
     const initialSearch = searchParams.get("search") || "";
-    const limit = Number(searchParams.get("limit")) || 10;
+    const limit = Number(searchParams.get("limit")) || 20;
 
     const [search, setSearch] = useState(initialSearch);
     const [page, setPage] = useState(initialPage);
@@ -277,6 +277,7 @@ const styles = {
         padding: "10px",
     } as React.CSSProperties,
     searchSelect: {
+        width: "10%",
         padding: "8px",
         marginRight: "8px",
         borderRadius: "6px",
