@@ -142,6 +142,7 @@ export default function Certificates() {
                                 <td style={styles.tableCell}>{item.id}</td>
                                 <td style={styles.tableCell}>{item.consecutive}</td>
                                 <td style={styles.tableCell}>{item.factus_bill_consecutive}</td>
+                                <td style={styles.tableCell}>{item.waybill}</td>
                                 <td style={styles.tableCell}>{item.policy_id}</td>
                                 <td style={styles.tableCell}>
                                     {item.start_at ? item.start_at.split("T")[0] : "—"}

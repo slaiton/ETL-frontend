@@ -23,6 +23,7 @@ export interface Certificate {
   id: number;
   consecutive: string;
   factus_bill_consecutive: string;
+  waybill: string;
   policy_id: number;
   start_at: string;      // ISO datetime
   end_at: string;        // ISO datetime
