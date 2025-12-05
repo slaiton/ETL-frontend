@@ -91,14 +91,13 @@ export default function Certificates() {
 
             {/* 🔍 Buscador */}
             <div style={styles.searchBox}>
-                <select
+                    <select
                     value={searchField}
                     onChange={(e) => setSearchField(e.target.value)}
                     style={styles.searchSelect}
                 >
-                    <option value="consecutive">Consecutivo</option>
-                    <option value="waybill">Waybill</option>
-                    <option value="factus_bill_consecutive">Certificado</option>
+                    <option value="consecutive">Certificado</option>
+                    <option value="factus_bill_consecutive">Factura</option>
                     {/* <option value="client">Cliente</option> */}
                 </select>
 
@@ -125,6 +124,7 @@ export default function Certificates() {
                         <th>Cliente</th>
                         <th>Factura</th>
                         <th>Valor</th>
+                        <th>Certificado</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -167,6 +167,18 @@ export default function Certificates() {
                                     )}
                                 </td>
                                 <td style={styles.tableCell}>{item.billing_price}</td>
+                                <td>
+                                    <button
+                                        onClick={() => {
+                                            const encodedId = btoa(String(item.id)); 
+                                            const url = `https://cotizadorsura-backend.tecnologiafuncional.com/api/certificados/${encodedId}/download`;
+                                            window.open(url, "_blank");
+                                        }}
+                                        className="btn btn-primary"
+                                    >
+                                        Descargar certificado
+                                    </button>
+                                </td>
                             </tr>
                         ))
                     )}

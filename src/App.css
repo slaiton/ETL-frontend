@@ -34,3 +34,9 @@
 .read-the-docs {
   color: #888;
 }
+
+.btn-primary {
+  background-color: #0071B2;
+  border-color: #0071B2;
+  color: white;
+}
