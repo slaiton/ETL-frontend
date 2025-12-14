@@ -261,9 +261,12 @@ export default function Dashboard() {
 
 
         <div style={{ ...gridItem(3), ...baseCardStyle, color: "#4ada12ff" }}>
-                    <div style={styles.cardTitle}>Total Fac. Certificados</div>
+          <div style={styles.cardTitle}>Total Fac. Certificados</div>
           <div style={{ ...styles.cardNumber, color: "#4ada12ff" }}>
-            {data.general.total_billing}
+            {Number(data?.general?.total_billing ?? 0).toLocaleString("es-CO", {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })}
           </div>
         </div>
       </div>
