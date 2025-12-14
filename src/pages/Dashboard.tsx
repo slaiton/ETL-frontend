@@ -258,6 +258,14 @@ export default function Dashboard() {
             <Bar data={barData} options={barOptions} />
           </div>
         </div>
+
+
+        <div style={{ ...gridItem(3), ...baseCardStyle, color: "#4ada12ff" }}>
+                    <div style={styles.cardTitle}>Total Fac. Certificados</div>
+          <div style={{ ...styles.cardNumber, color: "#4ada12ff" }}>
+            {data.general.total_billing}
+          </div>
+        </div>
       </div>
 
     </div>
