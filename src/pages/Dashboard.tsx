@@ -245,16 +245,18 @@ export default function Dashboard() {
           </div>
         </div>
 
-        
-        <div style={{ ...gridItem(3), ...baseCardStyle, color: "#4ada12ff" }}>
+
+        <div style={{ ...gridItem(4), ...baseCardStyle, color: "#4ada12ff" }}>
           <div style={styles.cardTitle}>Total Fac. Certificados</div>
           <div style={{ ...styles.cardNumber, color: "#4ada12ff" }}>
             {Number(data?.general?.total_billing ?? 0).toLocaleString("es-CO", {
-              minimumFractionDigits: 2,
+              minimumFractionDigits: 0,
               maximumFractionDigits: 2,
             })}
           </div>
         </div>
+
+        
 
         {/* PIE CHART (4 columnas) */}
         <div style={{ ...gridItem(4), ...chartCard }}>
