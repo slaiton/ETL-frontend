@@ -16,6 +16,7 @@ export interface CertificatesIndicatorByPeriod {
 }
 
 export interface CertificatesResponse {
+  invoices: CertificatesIndicator;
   general: CertificatesIndicator;
   period: CertificatesIndicatorByPeriod[];
 }

@@ -247,7 +247,7 @@ export default function Dashboard() {
 
 
         <div style={{ ...gridItem(4), ...baseCardStyle, color: "#4ada12ff" }}>
-          <div style={styles.cardTitle}>Total Fac. Certificados</div>
+          <div style={styles.cardTitle}>Total Certificados</div>
           <div style={{ ...styles.cardNumber, color: "#4ada12ff" }}>
             {Number(data?.general?.total_billing ?? 0).toLocaleString("es-CO", {
               minimumFractionDigits: 0,
@@ -269,6 +269,17 @@ export default function Dashboard() {
         <div style={{ ...gridItem(4), ...chartCard }}>
           <div style={styles.chartWrapper}>
             <Bar data={barData} options={barOptions} />
+          </div>
+        </div>
+
+
+        <div style={{ ...gridItem(4), ...baseCardStyle, color: "#4ada12ff" }}>
+          <div style={styles.cardTitle}>Total Facturas</div>
+          <div style={{ ...styles.cardNumber, color: "#4ada12ff" }}>
+            {Number(data?.invoices?.total_billing ?? 0).toLocaleString("es-CO", {
+              minimumFractionDigits: 0,
+              maximumFractionDigits: 2,
+            })}
           </div>
         </div>
 
