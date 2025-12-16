@@ -273,9 +273,9 @@ export default function Dashboard() {
         </div>
 
 
-        <div style={{ ...gridItem(4), ...baseCardStyle, color: "#4ada12ff" }}>
+        <div style={{ ...gridItem(4), ...baseCardStyle, color: "#1247daff" }}>
           <div style={styles.cardTitle}>Total Facturas</div>
-          <div style={{ ...styles.cardNumber, color: "#4ada12ff" }}>
+          <div style={{ ...styles.cardNumber, color: "#1247daff" }}>
             {Number(data?.invoices?.total_billing ?? 0).toLocaleString("es-CO", {
               minimumFractionDigits: 0,
               maximumFractionDigits: 2,
