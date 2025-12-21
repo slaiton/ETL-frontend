@@ -34,6 +34,7 @@ export default function Certificates() {
     const [data, setData] = useState<Certificate[]>([]);
     const [filtered, setFiltered] = useState<Certificate[]>([]);
     const [loading, setLoading] = useState(false);
+    const [loadingId, setLoadingId] = useState<number | null>(null);
 
     const fetchData = async () => {
         try {
@@ -185,27 +186,43 @@ export default function Certificates() {
                                 <td>
                                     {!item.bill_url ? (
                                         <button
+                                            className="btn btn-primary"
+                                            disabled={loadingId === item.id}
                                             onClick={async () => {
                                                 try {
+                                                    setLoadingId(item.id);
+
                                                     const response = await reportInvoice(item.id);
 
                                                     if (!response) {
-                                                        alert("No se pudo reportar la factura");
+                                                        alert("❌ No se pudo reportar la factura");
                                                         return;
                                                     }
 
-                                                    alert("Factura reportada correctamente");
+                                                    alert("✅ Factura reportada correctamente");
 
+                                            
                                                     window.location.reload();
 
                                                 } catch (error) {
                                                     console.error(error);
-                                                    alert("Error al reportar la factura");
+                                                    alert("❌ Error al reportar la factura");
+                                                } finally {
+                                                    setLoadingId(null);
                                                 }
                                             }}
-                                            className="btn btn-primary"
                                         >
-                                            Enviar
+                                            {loadingId === item.id ? (
+                                                <>
+                                                    <span
+                                                        className="spinner-border spinner-border-sm me-2"
+                                                        role="status"
+                                                    />
+                                                    Enviando...
+                                                </>
+                                            ) : (
+                                                "Enviar"
+                                            )}
                                         </button>
                                     ) : (
                                         "—"
