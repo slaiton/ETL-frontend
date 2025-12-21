@@ -3,6 +3,8 @@ import type { Certificate } from "../models/certificates.model";
 import { getCertificates } from "../api/certificates";
 import { useSearchParams } from "react-router-dom";
 
+import { reportInvoice } from '../api/invoices'
+
 export default function Certificates() {
 
     const [searchParams, setSearchParams] = useSearchParams();
@@ -91,7 +93,7 @@ export default function Certificates() {
 
             {/* 🔍 Buscador */}
             <div style={styles.searchBox}>
-                    <select
+                <select
                     value={searchField}
                     onChange={(e) => setSearchField(e.target.value)}
                     style={styles.searchSelect}
@@ -125,6 +127,7 @@ export default function Certificates() {
                         <th>Factura</th>
                         <th>Valor</th>
                         <th>Certificado</th>
+                        <th>Enviar factura</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -170,7 +173,7 @@ export default function Certificates() {
                                 <td>
                                     <button
                                         onClick={() => {
-                                            const encodedId = btoa(String(item.id)); 
+                                            const encodedId = btoa(String(item.id));
                                             const url = `https://cotizadorsura-backend.tecnologiafuncional.com/api/certificados/${encodedId}/download`;
                                             window.open(url, "_blank");
                                         }}
@@ -178,6 +181,37 @@ export default function Certificates() {
                                     >
                                         Descargar certificado
                                     </button>
+                                </td>
+                                <td>
+                                    {!item.bill_url ? (
+                                        <button
+                                            onClick={async () => {
+                                                try {
+                                                    const response = await reportInvoice(item.id);
+
+                                                    if (!response) {
+                                                        alert("No se pudo reportar la factura");
+                                                        return;
+                                                    }
+
+                                                    alert("✅ Factura reportada correctamente");
+                                                    console.log("Respuesta API:", response);
+
+                                                    // 👉 aquí puedes refrescar la lista
+                                                    // await loadCertificates();
+
+                                                } catch (error) {
+                                                    console.error(error);
+                                                    alert("❌ Error al reportar la factura");
+                                                }
+                                            }}
+                                            className="btn btn-primary"
+                                        >
+                                            Enviar
+                                        </button>
+                                    ) : (
+                                        "—"
+                                    )}
                                 </td>
                             </tr>
                         ))
