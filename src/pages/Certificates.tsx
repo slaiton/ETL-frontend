@@ -194,15 +194,13 @@ export default function Certificates() {
                                                         return;
                                                     }
 
-                                                    alert("✅ Factura reportada correctamente");
-                                                    console.log("Respuesta API:", response);
+                                                    alert("Factura reportada correctamente");
 
-                                                    // 👉 aquí puedes refrescar la lista
-                                                    // await loadCertificates();
+                                                    window.location.reload();
 
                                                 } catch (error) {
                                                     console.error(error);
-                                                    alert("❌ Error al reportar la factura");
+                                                    alert("Error al reportar la factura");
                                                 }
                                             }}
                                             className="btn btn-primary"
