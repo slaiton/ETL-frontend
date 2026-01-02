@@ -9,11 +9,12 @@ const BASE_URL = URL + "/v1/indicators";
 export async function getCertificates(
   start_date: string,
   end_date: string,
-  period: string
+  period: string,
+  policy_id: string
 ): Promise<CertificatesResponse | null> {
   try {
     const response = await fetch(
-      `${BASE_URL}/certificates?start_date=${start_date}&end_date=${end_date}&period=${period}`
+      `${BASE_URL}/certificates?start_date=${start_date}&end_date=${end_date}&period=${period}&policy_id=${policy_id}`
     );
 
     if (!response.ok) {

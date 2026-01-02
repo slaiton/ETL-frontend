@@ -35,11 +35,12 @@ export default function Dashboard() {
   const [period, setPeriod] = useState("day");
   const [endDate, setEndDate] = useState(today);
   const [loading, setLoading] = useState(false);
+  const [policy_id, setPolicy] = useState("2");
 
   const fetchData = async () => {
     try {
       setLoading(true);
-      const response = await getCertificates(startDate, endDate, period);
+      const response = await getCertificates(startDate, endDate, period, policy_id);
       setData(response);
     } catch (error) {
       console.error("Error cargando datos:", error);
@@ -198,11 +199,11 @@ export default function Dashboard() {
             Cliente:
             <select
               value={"2"}
-              disabled
+              onChange={(e) => setPolicy(e.target.value)}
               style={styles.select}
-              name="vigia"
             >
               <option value="2">Vigía</option>
+              <option value="3">TDH</option>
             </select>
           </label>
 
