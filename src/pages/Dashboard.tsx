@@ -198,7 +198,7 @@ export default function Dashboard() {
           <label style={styles.label}>
             Cliente:
             <select
-              value={"2"}
+              value={policy_id}
               onChange={(e) => setPolicy(e.target.value)}
               style={styles.select}
             >
