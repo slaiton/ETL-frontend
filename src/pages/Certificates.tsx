@@ -175,7 +175,7 @@ export default function Certificates() {
                                     <button
                                         onClick={() => {
                                             const encodedId = btoa(String(item.id));
-                                            const url = `https://cotizadorsura-backend.tecnologiafuncional.com/api/certificados/${encodedId}/download`;
+                                            const url = `https://cotizadorsura-backend.tecnologiafuncional.com/api/new_certificates/${encodedId}/download_view`;
                                             window.open(url, "_blank");
                                         }}
                                         className="btn btn-primary"
