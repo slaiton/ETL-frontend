@@ -4,7 +4,7 @@ import {
 
 const URL = import.meta.env.VITE_API_BASE_URL;
 
-const BASE_URL = URL + "/v1/certificates";
+const BASE_URL = URL + "certificates";
 
 export async function getCertificates(
   start_date: string,

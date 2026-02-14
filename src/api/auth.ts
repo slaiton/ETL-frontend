@@ -18,7 +18,7 @@ interface AuthResponse {
  * @returns Objeto con token e IDs relacionados.
  */
 
-// const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env.VITE_API_BASE_URL;
 export const authenticateUser = async (
   credentials: LoginParams,
   remember: boolean = false
@@ -31,7 +31,7 @@ export const authenticateUser = async (
       password: credentials.password,
     });
     const response = await axiosClient.post<AuthResponse>(
-      `/api/v1/auth/login`,
+      `${API_URL}auth/login`,
       json,
       {
         headers: {
