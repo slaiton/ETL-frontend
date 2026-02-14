@@ -28,7 +28,6 @@ export const layoutStyles = {
   },
 
   content: {
-    padding: "20px",
     overflowY: "auto",
   } as CSSProperties,
 
