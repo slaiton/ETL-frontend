@@ -31,7 +31,9 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       )}
 
       <div style={layoutStyles.main}>
-        <Navbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
+        {isAuthenticated && (
+          <Navbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
+        )}
         <div style={layoutStyles.content}>{children}</div>
         <Footer />
       </div>

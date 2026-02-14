@@ -11,8 +11,8 @@ import {
   BarElement,
 } from "chart.js";
 import type { ChartOptions } from "chart.js";
-import type { CertificatesResponse } from "../models/certificates.model";
-import { getCertificates } from "../api/indicators";
+import type { CertificatesResponse } from "../../../models/certificates.model";
+import { getCertificates } from "../../../api/indicators";
 
 ChartJS.register(
   ArcElement,

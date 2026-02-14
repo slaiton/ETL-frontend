@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import type { Certificate } from "../models/certificates.model";
-import { getCertificates } from "../api/certificates";
+import type { Certificate } from "../../../models/certificates.model";
+import { getCertificates } from "../../../api/certificates";
 import { useSearchParams } from "react-router-dom";
 
-import { reportInvoice } from '../api/invoices'
+import { reportInvoice } from '../../../api/invoices'
 
 export default function Certificates() {
 

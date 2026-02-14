@@ -1,8 +1,8 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { PrivateRoute } from "../ui/PrivateRoute";
 import Layout from "../components/Layout/Layout";
-import Dashboard from "../pages/Dashboard";
-import Certificates from "../pages/Certificates";
+import Dashboard from "../features/dashboard/Pages/Dashboard";
+import Certificates from "../features/certificates/Pages/Certificates";
 import Login from "../pages/Login";
 
 export default function AppRouter() {
