@@ -58,6 +58,7 @@ export const authenticateUser = async (
 };
 
 export const logout = () => {
+  
     localStorage.removeItem("auth_token");
     localStorage.removeItem("person");
     localStorage.removeItem("profile");

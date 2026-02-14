@@ -17,7 +17,7 @@ const Login = () => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate("/home", { replace: true });
+      navigate("/", { replace: true });
     }
   }, [isAuthenticated, navigate]);
 
@@ -27,7 +27,7 @@ const Login = () => {
 
     try {
       await login(data.user, data.password);
-      navigate("/home");
+      navigate("/");
     } catch (err: any) {
       setError(err.message || "Error al iniciar sesión");
     } finally {
