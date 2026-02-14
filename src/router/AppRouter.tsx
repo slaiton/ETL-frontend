@@ -4,6 +4,7 @@ import Layout from "../components/Layout/Layout";
 import Dashboard from "../features/dashboard/Pages/Dashboard";
 import Certificates from "../features/certificates/Pages/Certificates";
 import Login from "../pages/Login";
+import { LogOut } from "lucide-react";
 
 export default function AppRouter() {
   return (
@@ -17,6 +18,7 @@ export default function AppRouter() {
           }
              />
           <Route path="/login" element={<Login />} />
+          <Route path="/logout" element={<LogOut />} />
           <Route path="/certificates" element={
             <PrivateRoute>
               <Certificates />
