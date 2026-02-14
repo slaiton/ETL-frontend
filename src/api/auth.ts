@@ -31,7 +31,7 @@ export const authenticateUser = async (
       password: credentials.password,
     });
     const response = await axiosClient.post<AuthResponse>(
-      `${API_URL}auth/login`,
+      `/api/v1/auth/login`,
       json,
       {
         headers: {
