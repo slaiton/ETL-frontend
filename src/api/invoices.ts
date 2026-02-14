@@ -1,5 +1,5 @@
 const URL = import.meta.env.VITE_API_BASE_URL;
-const BASE_URL = URL + "/v1/invoices";
+const BASE_URL = URL + "invoices";
 
 export async function reportInvoice(
   certificateId: number
