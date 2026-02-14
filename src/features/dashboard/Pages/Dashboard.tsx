@@ -23,6 +23,8 @@ ChartJS.register(
   BarElement
 );
 
+
+
 export default function Dashboard() {
   const navigate = useNavigate();
   const today = new Date().toISOString().split("T")[0];
@@ -30,7 +32,30 @@ export default function Dashboard() {
   firstDayOfMonth.setDate(1);
   const defaultStart = firstDayOfMonth.toISOString().split("T")[0];
 
-  const [data, setData] = useState<CertificatesResponse | null>(null);
+  const initialData: CertificatesResponse = {
+    invoices: {
+      issued: 0,
+      cancelled: 0,
+      no_invoice: 0,
+      total_billing: 0,
+      start_date: "",
+      end_date: "",
+      customer_id: null,
+    },
+    general: {
+      issued: 0,
+      cancelled: 0,
+      no_invoice: 0,
+      total_billing: 0,
+      start_date: "",
+      end_date: "",
+      customer_id: null,
+    },
+    period: [],
+  };
+
+  const [data, setData] = useState<CertificatesResponse>(initialData);
+
   const [startDate, setStartDate] = useState(defaultStart);
   const [period, setPeriod] = useState("day");
   const [endDate, setEndDate] = useState(today);
@@ -41,7 +66,15 @@ export default function Dashboard() {
     try {
       setLoading(true);
       const response = await getCertificates(startDate, endDate, period, policy_id);
-      setData(response);
+      if (response) {
+        setData({
+          invoices: response.invoices ?? initialData.invoices,
+          general: response.general ?? initialData.general,
+          period: response.period ?? [],
+        });
+      } else {
+        setData(initialData);
+      }
     } catch (error) {
       console.error("Error cargando datos:", error);
     } finally {
@@ -58,11 +91,12 @@ export default function Dashboard() {
     fetchData();
   };
 
-  if (loading || !data) return <p style={{ textAlign: "center" }}>Cargando...</p>;
+  if (loading) return <p style={{ textAlign: "center" }}>Cargando...</p>;
 
-  const labels = data.period.map((p) => p.period);
-  const issuedArray = data.period.map((p) => p.issued);
-  const cancelledArray = data.period.map((p) => p.cancelled);
+
+  const labels = data?.period?.map((p) => p.period);
+  const issuedArray = data?.period?.map((p) => p.issued);
+  const cancelledArray = data?.period?.map((p) => p.cancelled);
 
   const pieData = {
     labels: ["Emitidos", "Cancelados"],
@@ -257,7 +291,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        
+
 
         {/* PIE CHART (4 columnas) */}
         <div style={{ ...gridItem(4), ...chartCard }}>

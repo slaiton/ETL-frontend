@@ -35,20 +35,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const login = async (user: string, password: string) => {
     try {
       const result = await authenticateUser({ user, password }, true);
-
-      console.log(result.access_token);
       
-
       if (result.access_token) {
         localStorage.setItem("auth_token", result.access_token);
+        localStorage.setItem("user", user);
         setIsAuthenticated(true);
       }
 
-
-      if (result.owner_id) {
-        localStorage.setItem("person", result.owner_id);
-        // setIdClient(result.id_client);
-      }
 
       if (result.id_rol) {
         localStorage.setItem("profile", result.id_rol);

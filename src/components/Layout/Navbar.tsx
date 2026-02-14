@@ -1,51 +1,74 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { layoutStyles } from "./layout.styles";
 
+interface StoredUser {
+  id?: number;
+  name?: string;
+  email?: string;
+}
+
 const Navbar: React.FC<{ onMenuClick: () => void }> = ({ onMenuClick }) => {
-    return (
-        <header style={layoutStyles.navbar}>
+  const [user, setUser] = useState<StoredUser | null>(null);
 
-            <div style={{
-                    display: "flex",
-                    alignItems : "center"
-            }}>      
-            
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
 
-            <button
-                onClick={onMenuClick}
-                style={{
-                    display: "block",
-                    padding: "8px 12px",
-                    borderRadius: "6px",
-                    border: "none",
-                    fontSize: "20px",
-                    cursor: "pointer",
-                    color: "#000",
-                    background: "transparent",
-                }}
-                className="mobile-menu-btn"
-            >
-                ☰
-            </button>
+    if (storedUser) {
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch {
+        setUser({ name: storedUser }); // por si lo guardaste como string plano
+      }
+    }
+  }, []);
 
-            <h3>Dashboard de Indicadores</h3>
+  const displayName = user?.name || user?.email || "Usuario";
 
-            </div>
+  return (
+    <header style={layoutStyles.navbar}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+        }}
+      >
+        <button
+          onClick={onMenuClick}
+          style={{
+            display: "block",
+            padding: "8px 12px",
+            borderRadius: "6px",
+            border: "none",
+            fontSize: "20px",
+            cursor: "pointer",
+            color: "#000",
+            background: "transparent",
+          }}
+          className="mobile-menu-btn"
+        >
+          ☰
+        </button>
 
+        <h3 style={{ marginLeft: "10px" }}>Dashboard de Indicadores</h3>
+      </div>
 
-            
+      <div style={{ display: "flex", gap: "15px", alignItems: "center" }}>
+        <span style={{ fontWeight: 500 }}>{displayName}</span>
 
-            <div style={{ display: "flex", gap: "20px", alignItems: "center" }}>
-                <span>Usuario</span>
-                <img
-                    src="https://ui-avatars.com/api/?name=User"
-                    style={{ width: "32px", borderRadius: "50%" }}
-                />
-            </div>
-
-
-        </header>
-    );
+        <img
+          src={`https://ui-avatars.com/api/?name=${encodeURIComponent(
+            displayName
+          )}&background=1e3a8a&color=fff`}
+          alt="avatar"
+          style={{
+            width: "36px",
+            height: "36px",
+            borderRadius: "50%",
+          }}
+        />
+      </div>
+    </header>
+  );
 };
 
 export default Navbar;
