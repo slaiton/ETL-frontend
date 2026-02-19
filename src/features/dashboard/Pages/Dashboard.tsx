@@ -60,7 +60,7 @@ export default function Dashboard() {
   const [period, setPeriod] = useState("day");
   const [endDate, setEndDate] = useState(today);
   const [loading, setLoading] = useState(false);
-  const [policy_id, setPolicy] = useState("2");
+  const [policy_id, setPolicy] = useState("");
 
   const fetchData = async () => {
     try {
@@ -236,6 +236,7 @@ export default function Dashboard() {
               onChange={(e) => setPolicy(e.target.value)}
               style={styles.select}
             >
+              <option value="">Todos</option>
               <option value="5">Vigía2</option>
               <option value="2">Vigía</option>
               <option value="3">TDH</option>
