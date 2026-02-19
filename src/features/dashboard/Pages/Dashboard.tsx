@@ -236,6 +236,7 @@ export default function Dashboard() {
               onChange={(e) => setPolicy(e.target.value)}
               style={styles.select}
             >
+              <option value="5">Vigía2</option>
               <option value="2">Vigía</option>
               <option value="3">TDH</option>
             </select>
