@@ -364,6 +364,7 @@ export default function Dashboard() {
               <option value="5">Vigía2</option>
               <option value="2">Vigía</option>
               <option value="3">TDH</option>
+              <option value="6">Coltanques</option>
             </select>
           </label>
 
