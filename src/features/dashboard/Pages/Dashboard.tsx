@@ -40,6 +40,8 @@ export default function Dashboard() {
   firstDayOfMonth.setDate(1);
   const defaultStart = firstDayOfMonth.toISOString().split("T")[0];
 
+  const isMobile = window.innerWidth < 768;
+
   const initialData: CertificatesResponse = {
     invoices: {
       issued: 0,
@@ -203,15 +205,18 @@ export default function Dashboard() {
   const gridLayout: React.CSSProperties = {
     display: "grid",
     width: "100%",
-    gridTemplateColumns: "repeat(12, 1fr)",
+    gridTemplateColumns: isMobile
+      ? "1fr"
+      : "repeat(12, 1fr)",
     gap: "20px",
     marginTop: "20px",
     boxSizing: "border-box",
   };
 
-  /* Función para declarar tamaño de 1–12 columnas */
   const gridItem = (cols: number): React.CSSProperties => ({
-    gridColumn: `span ${cols}`,
+    gridColumn: isMobile
+      ? "span 1"
+      : `span ${cols}`,
   });
 
   /* Card para gráficos */
@@ -307,28 +312,34 @@ export default function Dashboard() {
       <form onSubmit={handleFilter} style={toolbarStyle}>
         <div style={styles.formRow}>
 
+          {/* Fecha inicio */}
           <label style={styles.label}>
-            Fecha inicio:
+            Fecha inicio
+
             <input
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              style={styles.input}
+              style={styles.dateInput}
             />
           </label>
 
+          {/* Fecha fin */}
           <label style={styles.label}>
-            Fecha fin:
+            Fecha fin
+
             <input
               type="date"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
-              style={styles.input}
+              style={styles.dateInput}
             />
           </label>
 
+          {/* Periodo */}
           <label style={styles.label}>
-            Periodo:
+            Periodo
+
             <select
               value={period}
               onChange={(e) => setPeriod(e.target.value)}
@@ -340,8 +351,10 @@ export default function Dashboard() {
             </select>
           </label>
 
+          {/* Cliente */}
           <label style={styles.label}>
-            Cliente:
+            Cliente
+
             <select
               value={policy_id}
               onChange={(e) => setPolicy(e.target.value)}
@@ -354,236 +367,240 @@ export default function Dashboard() {
             </select>
           </label>
 
+          {/* Botón */}
           <button type="submit" style={styles.button}>
-            Aplicar
+            Aplicar filtros
           </button>
-        </div>
 
+        </div>
       </form>
 
+      <div style={styles.dashboardContent}>
 
-      <div style={gridLayout} className="grid-responsive">
 
-        {/* Card Totales */}
-        <div
-          style={{
-            ...gridItem(2),
-            ...baseCardStyle,
-            ...getCardAccent("#36eb6cff"),
-          }}
-        >
-          <div style={styles.cardTitle}>Certificados</div>
+        <div style={gridLayout} className="grid-responsive">
+
+          {/* Card Totales */}
+          <div
+            style={{
+              ...gridItem(2),
+              ...baseCardStyle,
+              ...getCardAccent("#36eb6cff"),
+            }}
+          >
+            <div style={styles.cardTitle}>Certificados</div>
+
+            <div
+              style={{
+                ...styles.cardNumber,
+                color: "#36eb6cff",
+              }}
+            >
+              {data.general.issued + data.general.cancelled}
+            </div>
+          </div>
 
           <div
             style={{
-              ...styles.cardNumber,
-              color: "#36eb6cff",
+              ...gridItem(2),
+              ...baseCardStyle,
+              ...getCardAccent("#36A2EB"),
             }}
           >
-            {data.general.issued + data.general.cancelled}
-          </div>
-        </div>
+            <div style={styles.cardTitle}>Emitidos</div>
 
-        <div
-          style={{
-            ...gridItem(2),
-            ...baseCardStyle,
-            ...getCardAccent("#36A2EB"),
-          }}
-        >
-          <div style={styles.cardTitle}>Emitidos</div>
+            <div
+              style={{
+                ...styles.cardNumber,
+                color: "#36A2EB",
+              }}
+            >
+              {data.general.issued}
+            </div>
+          </div>
+
 
           <div
             style={{
-              ...styles.cardNumber,
-              color: "#36A2EB",
+              ...gridItem(2),
+              ...baseCardStyle,
+              ...getCardAccent("#FF6384"),
             }}
           >
-            {data.general.issued}
+            <div style={styles.cardTitle}>Cancelados</div>
+
+            <div
+              style={{
+                ...styles.cardNumber,
+                color: "#FF6384",
+              }}
+            >
+              {data.general.cancelled}
+            </div>
           </div>
-        </div>
-
-
-        <div
-          style={{
-            ...gridItem(2),
-            ...baseCardStyle,
-            ...getCardAccent("#FF6384"),
-          }}
-        >
-          <div style={styles.cardTitle}>Cancelados</div>
 
           <div
             style={{
-              ...styles.cardNumber,
-              color: "#FF6384",
+              ...gridItem(2),
+              ...baseCardStyle,
+              ...getCardAccent("#cab70dff"),
             }}
+            onClick={() => navigate("/certificates?invoice=false")}
           >
-            {data.general.cancelled}
-          </div>
-        </div>
+            <div style={styles.cardTitle}>Sin Factura</div>
 
-        <div
-          style={{
-            ...gridItem(2),
-            ...baseCardStyle,
-            ...getCardAccent("#cab70dff"),
-          }}
-          onClick={() => navigate("/certificates?invoice=false")}
-        >
-          <div style={styles.cardTitle}>Sin Factura</div>
+            <div
+              style={{
+                ...styles.cardNumber,
+                color: "#cab70dff",
+              }}
+            >
+              {data.general.no_invoice}
+            </div>
+          </div>
+
 
           <div
             style={{
-              ...styles.cardNumber,
-              color: "#cab70dff",
+              ...gridItem(3),
+              ...baseCardStyle,
+              ...getCardAccent("#4ada12ff"),
             }}
           >
-            {data.general.no_invoice}
+            <div style={styles.cardTitle}>Total Certificados</div>
+            <div style={{ ...styles.cardNumber, color: "#4ada12ff" }}>
+              {Number(data?.general?.total_billing ?? 0).toLocaleString("es-CO", {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 2,
+              })}
+            </div>
           </div>
-        </div>
 
-
-        <div
-          style={{
-            ...gridItem(3),
-            ...baseCardStyle,
-            ...getCardAccent("#4ada12ff"),
-          }}
-        >
-          <div style={styles.cardTitle}>Total Certificados</div>
-          <div style={{ ...styles.cardNumber, color: "#4ada12ff" }}>
-            {Number(data?.general?.total_billing ?? 0).toLocaleString("es-CO", {
-              minimumFractionDigits: 0,
-              maximumFractionDigits: 2,
-            })}
-          </div>
-        </div>
-
-
-        <div
-          style={{
-            ...gridItem(3),
-            ...baseCardStyle,
-            ...getCardAccent("#1d4ed8"),
-          }}
-        >
-          <div style={styles.cardTitle}>Nuevos Terceros</div>
 
           <div
             style={{
-              ...styles.cardNumber,
-              color: "#1d4ed8",
+              ...gridItem(3),
+              ...baseCardStyle,
+              ...getCardAccent("#1d4ed8"),
             }}
           >
-            {data.entities_general.total_created}
-          </div>
-        </div>
+            <div style={styles.cardTitle}>Nuevos Terceros</div>
 
-        <div
-          style={{
-            ...gridItem(3),
-            ...baseCardStyle,
-            ...getCardAccent("#10B981"),
-          }}
-        >
-          <div style={styles.cardTitle}>Terceros Firmados</div>
+            <div
+              style={{
+                ...styles.cardNumber,
+                color: "#1d4ed8",
+              }}
+            >
+              {data.entities_general.total_created}
+            </div>
+          </div>
 
           <div
             style={{
-              ...styles.cardNumber,
-              color: "#10B981",
+              ...gridItem(3),
+              ...baseCardStyle,
+              ...getCardAccent("#10B981"),
             }}
           >
-            {data.entities_general.total_signed}
-          </div>
-        </div>
+            <div style={styles.cardTitle}>Terceros Firmados</div>
 
-        <div
-          style={{
-            ...gridItem(3),
-            ...baseCardStyle,
-            ...getCardAccent("#7c3aed"),
-          }}
-        >
-          <div style={styles.cardTitle}>Terceros Notificados</div>
+            <div
+              style={{
+                ...styles.cardNumber,
+                color: "#10B981",
+              }}
+            >
+              {data.entities_general.total_signed}
+            </div>
+          </div>
 
           <div
             style={{
-              ...styles.cardNumber,
-              color: "#7c3aed",
+              ...gridItem(3),
+              ...baseCardStyle,
+              ...getCardAccent("#7c3aed"),
             }}
           >
-            {data.entities_general.total_sent}
+            <div style={styles.cardTitle}>Terceros Notificados</div>
+
+            <div
+              style={{
+                ...styles.cardNumber,
+                color: "#7c3aed",
+              }}
+            >
+              {data.entities_general.total_sent}
+            </div>
           </div>
-        </div>
 
 
 
-        <div
-          style={{
-            ...gridItem(3),
-            ...baseCardStyle,
-            ...getCardAccent("#1247daff"),
-          }}
-        >
-          <div style={styles.cardTitle}>Total Facturas</div>
-          <div style={{ ...styles.cardNumber, color: "#1247daff" }}>
-            {Number(data?.invoices?.total_billing ?? 0).toLocaleString("es-CO", {
-              minimumFractionDigits: 0,
-              maximumFractionDigits: 2,
-            })}
+          <div
+            style={{
+              ...gridItem(3),
+              ...baseCardStyle,
+              ...getCardAccent("#1247daff"),
+            }}
+          >
+            <div style={styles.cardTitle}>Total Facturas</div>
+            <div style={{ ...styles.cardNumber, color: "#1247daff" }}>
+              {Number(data?.invoices?.total_billing ?? 0).toLocaleString("es-CO", {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 2,
+              })}
+            </div>
           </div>
-        </div>
 
 
 
-        {/* PIE CHART (4 columnas) */}
-        <div style={{ ...gridItem(4), ...chartCard }}>
-          <div style={styles.chartWrapper}>
-            <Pie data={pieData} options={pieOptions} />
+          {/* PIE CHART (4 columnas) */}
+          <div style={{ ...gridItem(4), ...chartCard }}>
+            <div style={styles.chartWrapper}>
+              <Pie data={pieData} options={pieOptions} />
+            </div>
           </div>
-        </div>
 
-        {/* BAR CHART (8 columnas) */}
-        <div style={{ ...gridItem(8), ...chartCard }}>
-          <div style={styles.chartWrapper}>
-            <Bar data={barData} options={barOptions} />
+          {/* BAR CHART (8 columnas) */}
+          <div style={{ ...gridItem(8), ...chartCard }}>
+            <div style={styles.chartWrapper}>
+              <Bar data={barData} options={barOptions} />
+            </div>
           </div>
-        </div>
 
 
 
 
 
-        {/* LINE CHART ENTITIES */}
-        <div style={{ ...gridItem(8), ...chartCard }}>
-          <h3 style={styles.chartTitle}>
-            Tendencia de Firmas
-          </h3>
+          {/* LINE CHART ENTITIES */}
+          <div style={{ ...gridItem(8), ...chartCard }}>
+            <h3 style={styles.chartTitle}>
+              Tendencia de Firmas
+            </h3>
 
-          <div style={styles.chartWrapper}>
-            <Line
-              data={entitiesLineData}
-              options={modernChartOptions}
-            />
+            <div style={styles.chartWrapper}>
+              <Line
+                data={entitiesLineData}
+                options={modernChartOptions}
+              />
+            </div>
           </div>
-        </div>
 
-        {/* DOUGHNUT */}
-        <div style={{ ...gridItem(4), ...chartCard }}>
-          <h3 style={styles.chartTitle}>
-            Estado de Firma
-          </h3>
+          {/* DOUGHNUT */}
+          <div style={{ ...gridItem(4), ...chartCard }}>
+            <h3 style={styles.chartTitle}>
+              Estado de Firma
+            </h3>
 
-          <div style={styles.chartWrapper}>
-            <Doughnut
-              data={entitiesPieData}
-              options={doughnutOptions}
-            />
+            <div style={styles.chartWrapper}>
+              <Doughnut
+                data={entitiesPieData}
+                options={doughnutOptions}
+              />
+            </div>
           </div>
-        </div>
 
+        </div>
       </div>
 
     </div>
@@ -612,26 +629,6 @@ const getCardAccent = (color: string): React.CSSProperties => ({
 
 const styles: Record<string, React.CSSProperties> = {
 
-  cardTitle: {
-    fontSize: "1rem",
-    fontWeight: 600,
-    textAlign: "center",
-    opacity: 0.8,
-    marginBottom: "8px",
-  },
-  cardNumber: {
-    fontSize: "2.6rem",
-    fontWeight: 800,
-    textAlign: "center",
-    lineHeight: "1",
-    marginTop: "4px",
-  },
-  chartWrapper: {
-    width: "100%",
-    minHeight: window.innerWidth < 768 ? "300px" : "400px",
-    padding: window.innerWidth < 768 ? "5px" : "10px",
-    boxSizing: "border-box",
-  },
 
   container: {
     textAlign: "center",
@@ -644,50 +641,218 @@ const styles: Record<string, React.CSSProperties> = {
     background:
       "linear-gradient(180deg,#0f172a 0%, #111827 100%)",
   },
-  title: {
-    fontSize: "2rem",
-    marginBottom: "10px",
-  },
-  form: {
+
+  dashboardContent: {
+    width: "100%",
+
+    maxWidth: "1600px",
+
+    margin: "0 auto",
+
     display: "flex",
-    flexWrap: "wrap",
+
     justifyContent: "center",
-    gap: "10px",
-    marginBottom: "20px",
+
+    alignItems: "center",
+
+    boxSizing: "border-box",
   },
 
   formRow: {
     display: "flex",
-    gap: "15px",
-    alignItems: "center",
-    justifyContent: "center",
-    flexWrap: "wrap",
+    flexDirection:
+      window.innerWidth < 768
+        ? "column"
+        : "row",
+
+    gap: "16px",
+
+    alignItems:
+      window.innerWidth < 768
+        ? "stretch"
+        : "flex-end",
+
+    justifyContent: "flex-start",
+
+    width: "100%",
   },
+
   label: {
     display: "flex",
+
     flexDirection: "column",
+
     alignItems: "flex-start",
-    color: "#fff",
+
+    gap: "8px",
+
+    color: "#E5E7EB",
+
+    fontSize: "14px",
+
+    fontWeight: 500,
+
+    width:
+      window.innerWidth < 768
+        ? "100%"
+        : "auto",
   },
-  input: {
-    padding: "5px",
-    borderRadius: "5px",
-    border: "1px solid #ccc",
-  },
-  select: {
-    padding: "5px",
-    borderRadius: "5px",
-    border: "1px solid #ccc",
-  },
-  button: {
-    backgroundColor: "#36A2EB",
-    color: "#fff",
-    border: "none",
-    borderRadius: "5px",
-    padding: "8px 16px",
+
+  dateInput: {
+    width: "100%",
+
+    minWidth:
+      window.innerWidth < 768
+        ? "100%"
+        : "180px",
+
+    padding: "12px 14px",
+
+    borderRadius: "10px",
+
+    border:
+      "1px solid rgba(255,255,255,0.08)",
+
+    background: "rgba(15,23,42,0.95)",
+
+    color: "#ffffff",
+
+    fontSize: "14px",
+
+    outline: "none",
+
+    boxSizing: "border-box",
+
+    appearance: "none",
+
+    WebkitAppearance: "none",
+
+    MozAppearance: "none",
+
+    backdropFilter: "blur(8px)",
+
+    transition: "all .2s ease",
+
+    colorScheme: "dark",
+
+    minHeight: "46px",
+
     cursor: "pointer",
-    fontWeight: "bold",
   },
+
+  select: {
+    width: "100%",
+
+    minWidth:
+      window.innerWidth < 768
+        ? "100%"
+        : "180px",
+
+    padding: "12px 14px",
+
+    borderRadius: "10px",
+
+    border:
+      "1px solid rgba(255,255,255,0.08)",
+
+    background: "rgba(15,23,42,0.95)",
+
+    color: "#ffffff",
+
+    fontSize: "14px",
+
+    outline: "none",
+
+    boxSizing: "border-box",
+
+    appearance: "none",
+
+    WebkitAppearance: "none",
+
+    MozAppearance: "none",
+
+    backdropFilter: "blur(8px)",
+
+    transition: "all .2s ease",
+
+    colorScheme: "dark",
+
+    minHeight: "46px",
+
+    cursor: "pointer",
+
+    paddingRight: "40px",
+  },
+
+  button: {
+    background: "#2563EB",
+
+    color: "#fff",
+
+    border: "none",
+
+    borderRadius: "10px",
+
+    padding: "12px 18px",
+
+    cursor: "pointer",
+
+    fontWeight: 600,
+
+    minHeight: "46px",
+
+    minWidth:
+      window.innerWidth < 768
+        ? "100%"
+        : "160px",
+
+    appearance: "none",
+
+    WebkitAppearance: "none",
+
+    transition: "all .2s ease",
+
+    boxShadow:
+      "0 6px 18px rgba(37,99,235,.25)",
+  },
+
+  cardTitle: {
+    fontSize: "1rem",
+    fontWeight: 600,
+    textAlign: "center",
+    opacity: 0.8,
+    marginBottom: "8px",
+  },
+
+  cardNumber: {
+    fontSize: "2.6rem",
+    fontWeight: 800,
+    textAlign: "center",
+    lineHeight: "1",
+    marginTop: "4px",
+  },
+
+  chartWrapper: {
+    width: "100%",
+
+    height:
+      window.innerWidth < 768
+        ? "280px"
+        : "420px",
+
+    padding:
+      window.innerWidth < 768
+        ? "0px"
+        : "10px",
+
+    boxSizing: "border-box",
+  },
+
+  title: {
+    fontSize: "2rem",
+    marginBottom: "10px",
+  },
+
   totals: {
     display: "flex",
     flexWrap: "wrap",
@@ -695,13 +860,23 @@ const styles: Record<string, React.CSSProperties> = {
     gap: "20px",
     marginBottom: "20px",
   },
+
   totalItem: {
     fontSize: "1.5rem",
     fontWeight: "bold",
   },
+
   chartBox: {
     flex: "1 1 350px",
     maxWidth: "600px",
     minWidth: "100px",
-  }
+  },
+
+  chartTitle: {
+    color: "#fff",
+    textAlign: "left",
+    marginBottom: "20px",
+    fontSize: "1.1rem",
+    fontWeight: 700,
+  },
 };
