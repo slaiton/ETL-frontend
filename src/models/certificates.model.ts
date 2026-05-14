@@ -1,3 +1,5 @@
+import type { EntitiesGeneral, EntitiesPeriod } from "./entities.models";
+
 export interface CertificatesIndicator {
   issued: number;
   cancelled: number;
@@ -19,6 +21,9 @@ export interface CertificatesResponse {
   invoices: CertificatesIndicator;
   general: CertificatesIndicator;
   period: CertificatesIndicatorByPeriod[];
+  entities_general: EntitiesGeneral;
+  entities_period_created: EntitiesPeriod[];
+  entities_period_signed: EntitiesPeriod[];
 }
 
 export interface Certificate {

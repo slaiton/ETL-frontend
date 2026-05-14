@@ -14,11 +14,13 @@ export default function Certificates() {
     const formatDate = (d: Date) =>
         d.toISOString().split("T")[0]; // "YYYY-MM-DD"
 
-    const startDate =
-        searchParams.get("startDate") || formatDate(firstDay);
+    const [startDate, setStartDate] = useState(
+        searchParams.get("startDate") || formatDate(firstDay)
+    );
 
-    const endDate =
-        searchParams.get("endDate") || formatDate(today);
+    const [endDate, setEndDate] = useState(
+        searchParams.get("endDate") || formatDate(today)
+    );
 
     const invoice = searchParams.get("invoice") || true.toString();
 
@@ -50,12 +52,18 @@ export default function Certificates() {
 
     useEffect(() => {
         fetchData();
-    }, []);
+    }, [startDate, endDate, page]);
 
     useEffect(() => {
-        const result = data.filter((item) =>
-            item.consecutive?.toLowerCase().includes(search.toLowerCase())
-        );
+        const result = data.filter((item) => {
+            const value = item[searchField as keyof Certificate];
+
+            if (!value) return false;
+
+            return String(value)
+                .toLowerCase()
+                .includes(search.toLowerCase());
+        });
         setFiltered(result);
         setPage(1);
 
@@ -93,26 +101,73 @@ export default function Certificates() {
         <div style={styles.container}>
 
             {/* 🔍 Buscador */}
-            <div style={styles.searchBox}>
-                <select
-                    value={searchField}
-                    onChange={(e) => setSearchField(e.target.value)}
-                    style={styles.searchSelect}
-                >
-                    <option value="consecutive">Certificado</option>
-                    <option value="factus_bill_consecutive">Factura</option>
-                    {/* <option value="client">Cliente</option> */}
-                </select>
+            <div style={styles.searchContainer}>
 
-                <input
-                    type="text"
-                    placeholder="Buscar..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    style={styles.searchInput}
-                />
+                {/* 🔍 Input + select */}
+                <div style={styles.searchGroup}>
+                    <select
+                        value={searchField}
+                        onChange={(e) => setSearchField(e.target.value)}
+                        style={styles.select}
+                    >
+                        <option value="id">Código</option>
+                        <option value="consecutive">Certificado</option>
+                        <option value="factus_bill_consecutive">Factura</option>
+                    </select>
+
+                    <input
+                        type="text"
+                        placeholder={`Buscar por ${searchField}...`}
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        style={styles.input}
+                    />
+                </div>
+
+                {/* 📅 Fechas */}
+                <div style={styles.dateGroup}>
+                    <input
+                        type="date"
+                        value={startDate}
+                        onChange={(e) => {
+                            setStartDate(e.target.value);
+                            setPage(1);
+
+                            setSearchParams({
+                                page: "1",
+                                search,
+                                limit: limit.toString(),
+                                startDate: e.target.value,
+                                endDate,
+                                invoice,
+                            });
+                        }}
+                        style={styles.dateInput}
+                    />
+
+                    <span style={styles.dateSeparator}>→</span>
+
+                    <input
+                        type="date"
+                        value={endDate}
+                        onChange={(e) => {
+                            setEndDate(e.target.value);
+                            setPage(1);
+
+                            setSearchParams({
+                                page: "1",
+                                search,
+                                limit: limit.toString(),
+                                startDate,
+                                endDate: e.target.value,
+                                invoice,
+                            });
+                        }}
+                        style={styles.dateInput}
+                    />
+                </div>
+
             </div>
-
             {/* 📄 Tabla */}
             <table style={styles.table}>
                 <thead>
@@ -201,7 +256,7 @@ export default function Certificates() {
 
                                                     alert("✅ Factura reportada correctamente");
 
-                                            
+
                                                     window.location.reload();
 
                                                 } catch (error) {
@@ -258,8 +313,67 @@ const styles = {
         color: "#e4e4e7", // texto gris suave
     } as React.CSSProperties,
 
-    searchBox: {
+    searchContainer: {
+        display: "flex",
+        flexWrap: "wrap",
+        gap: "12px",
+        alignItems: "center",
+        justifyContent: "space-between",
         marginBottom: "20px",
+        background: "#18181b",
+        padding: "12px",
+        borderRadius: "12px",
+        border: "1px solid #2a2a33",
+    } as React.CSSProperties,
+
+    searchGroup: {
+        display: "flex",
+        alignItems: "center",
+        background: "#1e1e24",
+        borderRadius: "10px",
+        border: "1px solid #3f3f46",
+        overflow: "hidden",
+    } as React.CSSProperties,
+
+    select: {
+        background: "transparent",
+        border: "none",
+        color: "#a1a1aa",
+        padding: "10px",
+        outline: "none",
+        borderRight: "1px solid #3f3f46",
+        cursor: "pointer",
+    } as React.CSSProperties,
+
+    input: {
+        background: "transparent",
+        border: "none",
+        padding: "10px 12px",
+        color: "#e4e4e7",
+        outline: "none",
+        minWidth: "220px",
+    } as React.CSSProperties,
+
+    dateGroup: {
+        display: "flex",
+        alignItems: "center",
+        gap: "8px",
+        background: "#1e1e24",
+        padding: "6px 10px",
+        borderRadius: "10px",
+        border: "1px solid #3f3f46",
+    } as React.CSSProperties,
+
+    dateInput: {
+        background: "transparent",
+        border: "none",
+        color: "#e4e4e7",
+        outline: "none",
+    } as React.CSSProperties,
+
+    dateSeparator: {
+        color: "#71717a",
+        fontSize: "14px",
     } as React.CSSProperties,
 
     searchInput: {
