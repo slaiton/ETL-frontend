@@ -1,21 +1,24 @@
-import React from 'react'
-import { AuthProvider } from "./shared/context/AuthContext.tsx";
+import React from "react";
+import { createRoot } from "react-dom/client";
+import { AuthProvider } from "./shared/context/AuthContext";
+import { NotificationProvider } from "./shared/context/NotificationContext";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 import { setupInterceptors } from "./shared/api/interceptor";
 import { setupAuthInterceptor } from "./shared/api/authInterceptor";
-import { NotificationProvider } from "./shared/context/NotificationContext";
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.tsx'
+import "./index.css";
+import App from "./App.tsx";
 
 setupAuthInterceptor();
 setupInterceptors();
 
-createRoot(document.getElementById('root')!).render(
+createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <AuthProvider>
-      <NotificationProvider>
-        <App />
-      </NotificationProvider>
-    </AuthProvider>
-  </React.StrictMode>,
-)
+    <ErrorBoundary>
+      <AuthProvider>
+        <NotificationProvider>
+          <App />
+        </NotificationProvider>
+      </AuthProvider>
+    </ErrorBoundary>
+  </React.StrictMode>
+);
