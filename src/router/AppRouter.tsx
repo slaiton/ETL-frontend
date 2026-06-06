@@ -3,6 +3,8 @@ import { PrivateRoute } from "../ui/PrivateRoute";
 import Layout from "../components/Layout/Layout";
 import Dashboard from "../features/dashboard/Pages/Dashboard";
 import Certificates from "../features/certificates/Pages/Certificates";
+import UsersPage from "../features/users/Pages/Users";
+import RolesPage from "../features/roles/Pages/Roles";
 import Invoices from "../pages/Invoices";
 import Login from "../pages/Login";
 import Logout from "../pages/Logout";
@@ -35,6 +37,22 @@ export default function AppRouter() {
             element={
               <PrivateRoute>
                 <Invoices />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/users"
+            element={
+              <PrivateRoute>
+                <UsersPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/roles"
+            element={
+              <PrivateRoute>
+                <RolesPage />
               </PrivateRoute>
             }
           />

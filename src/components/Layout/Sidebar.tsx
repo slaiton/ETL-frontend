@@ -1,14 +1,15 @@
 import React from "react";
 import { sidebarStyles } from "./layout.styles";
 import { Link } from "react-router-dom";
-import { Home, FileText,DollarSign ,LogOut } from "lucide-react";
-
+import { Home, FileText, DollarSign, Users, Shield, LogOut } from "lucide-react";
 
 const modules = [
-  { label: "Dashboard", path: "/", icon: <Home size={18} /> },
+  { label: "Dashboard",    path: "/",            icon: <Home size={18} /> },
   { label: "Certificados", path: "/certificates", icon: <FileText size={18} /> },
-  { label: "Facturas", path: "/invoices", icon: <DollarSign size={18} /> },
-  { path: "/logout", label: "Cerrar Sesión", icon: <LogOut size={18} /> }
+  { label: "Facturas",     path: "/invoices",     icon: <DollarSign size={18} /> },
+  { label: "Usuarios",     path: "/users",        icon: <Users size={18} /> },
+  { label: "Roles",        path: "/roles",        icon: <Shield size={18} /> },
+  { label: "Cerrar Sesión",path: "/logout",       icon: <LogOut size={18} /> },
 ];
 
 const Sidebar: React.FC<{ open?: boolean; onLinkClick?: () => void }> = ({

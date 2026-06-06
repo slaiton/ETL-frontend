@@ -6,12 +6,19 @@ export function useCertificates() {
   const [data, setData] = useState<Certificate[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // useCallback con [] para referencia estable — los params se pasan como argumentos
   const fetchData = useCallback(
-    async (startDate: string, endDate: string, invoice: string) => {
+    async (
+      startDate: string,
+      endDate: string,
+      invoice: string,
+      search?: string,
+      searchField?: string,
+      page?: number,
+      limit?: number
+    ) => {
       try {
         setLoading(true);
-        const raw = await getCertificates(startDate, endDate, invoice);
+        const raw = await getCertificates(startDate, endDate, invoice, search, searchField, page, limit);
         setData(raw?.data ?? []);
       } catch (error) {
         console.error("Error cargando certificados:", error);
