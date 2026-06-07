@@ -217,7 +217,7 @@ export default function Dashboard() {
               { label: "Emitidos",           val: data.general.issued,                          color: "#60A5FA", onClick: undefined },
               { label: "Cancelados",         val: data.general.cancelled,                       color: "#F87171", onClick: undefined },
               { label: "Sin Factura",        val: data.general.no_invoice,                      color: "#FBBF24", onClick: () => navigate("/certificates?invoice=false") },
-              { label: "Total Facturas",      val: fmtCurrency(data.invoices.total_billing),    color: "#38BDF8" },
+              { label: "Nuevos Terceros",     val: data.entities_general.total_created,         color: "#818CF8" },
             ].map(({ label, val, color, onClick }) => (
               <div key={label} style={{ ...gi(2), ...baseCard, borderLeft: `4px solid ${color}`, cursor: onClick ? "pointer" : "default" }} onClick={onClick}>
                 <div style={st.cardLabel}>{label}</div>
@@ -229,7 +229,7 @@ export default function Dashboard() {
               { label: "Total Certificados",  val: fmtCurrency(data.general.total_billing),    color: "#4ADE80" },
               { label: "Terceros Firmados",   val: data.entities_general.total_signed,          color: "#34D399" },
               { label: "Terceros Notificados",val: data.entities_general.total_sent,            color: "#A78BFA" },
-              { label: "Nuevos Terceros",     val: data.entities_general.total_created,         color: "#818CF8" },
+              { label: "Total Facturas",      val: fmtCurrency(data.invoices.total_billing),    color: "#38BDF8" },
             ].map(({ label, val, color }) => (
               <div key={label} style={{ ...gi(label === "Total Certificados" || label === "Total Facturas" ? 3 : 3), ...baseCard, borderLeft: `4px solid ${color}` }}>
                 <div style={st.cardLabel}>{label}</div>
