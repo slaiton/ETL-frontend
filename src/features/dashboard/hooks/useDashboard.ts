@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { CertificatesResponse } from "../../../models/certificates.model";
 import { getCertificates } from "../../../api/indicators";
 
+
 const today = new Date().toISOString().split("T")[0];
 const firstDayOfMonth = new Date();
 firstDayOfMonth.setDate(1);
