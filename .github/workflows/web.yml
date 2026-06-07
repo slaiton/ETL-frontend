@@ -35,8 +35,8 @@ jobs:
 
       - name: Clean remote directory
         run: |
-          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} "rm -rf /var/www/html/web/*"
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} "rm -rf /var/www/html/ETL-frontend/dist/*"
 
       - name: Copy build to server
         run: |
-          scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -r dist/** ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }}:/var/www/html/web
+          scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -r dist/. ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }}:/var/www/html/ETL-frontend/dist
