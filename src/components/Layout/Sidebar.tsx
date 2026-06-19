@@ -1,7 +1,7 @@
 import React from "react";
 import { sidebarStyles } from "./layout.styles";
 import { Link, useLocation } from "react-router-dom";
-import { Home, FileText, DollarSign, Users, Shield, LogOut } from "lucide-react";
+import { LayoutDashboard, BarChart3, FileText, DollarSign, Users, Shield, LogOut } from "lucide-react";
 import { useAuth } from "../../shared/context/AuthContext";
 import type { ModuleKey } from "../../models/roles.model";
 
@@ -13,12 +13,13 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { label: "Dashboard",    path: "/",            icon: <Home size={18} />,       module: "dashboard" },
-  { label: "Certificados", path: "/certificates", icon: <FileText size={18} />,  module: "certificates" },
-  { label: "Facturas",     path: "/invoices",     icon: <DollarSign size={18} />, module: "invoices" },
-  { label: "Usuarios",     path: "/users",        icon: <Users size={18} />,      module: "users" },
-  { label: "Roles",        path: "/roles",        icon: <Shield size={18} />,     module: "roles" },
-  { label: "Cerrar Sesión",path: "/logout",       icon: <LogOut size={18} />,     module: null },
+  { label: "Inicio",       path: "/home",         icon: <LayoutDashboard size={18} />, module: null },
+  { label: "Dashboard",    path: "/",             icon: <BarChart3 size={18} />,       module: "dashboard" },
+  { label: "Certificados", path: "/certificates", icon: <FileText size={18} />,        module: "certificates" },
+  { label: "Facturas",     path: "/invoices",     icon: <DollarSign size={18} />,      module: "invoices" },
+  { label: "Usuarios",     path: "/users",        icon: <Users size={18} />,           module: "users" },
+  { label: "Roles",        path: "/roles",        icon: <Shield size={18} />,          module: "roles" },
+  { label: "Cerrar Sesión",path: "/logout",       icon: <LogOut size={18} />,          module: null },
 ];
 
 const Sidebar: React.FC<{ open?: boolean; onLinkClick?: () => void }> = ({ open = false, onLinkClick }) => {

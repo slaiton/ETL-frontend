@@ -10,6 +10,7 @@ interface AuthResponse {
   token_type: string;
   role_id?: number;
   permissions?: string[];
+  home_page?: string;
 }
 
 export const authenticateUser = async (
@@ -38,5 +39,6 @@ export const logout = () => {
   localStorage.removeItem("user");
   localStorage.removeItem("role_id");
   localStorage.removeItem("permissions");
+  localStorage.removeItem("home_page");
   window.location.href = "/login";
 };

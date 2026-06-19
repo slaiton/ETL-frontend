@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { PrivateRoute } from "../ui/PrivateRoute";
 import Layout from "../components/Layout/Layout";
+import Home from "../features/home/Pages/Home";
 import Dashboard from "../features/dashboard/Pages/Dashboard";
 import Certificates from "../features/certificates/Pages/Certificates";
 import UsersPage from "../features/users/Pages/Users";
@@ -17,6 +18,9 @@ export default function AppRouter() {
           <Route path="/login" element={<Login />} />
           <Route path="/logout" element={<Logout />} />
 
+          <Route path="/home" element={
+            <PrivateRoute><Home /></PrivateRoute>
+          } />
           <Route path="/" element={
             <PrivateRoute module="dashboard"><Dashboard /></PrivateRoute>
           } />

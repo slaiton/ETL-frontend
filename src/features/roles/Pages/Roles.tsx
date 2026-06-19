@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import {
   Shield, Plus, Pencil, Trash2, X, Check,
-  Home, FileText, DollarSign, Users, LayoutGrid,
+  Home, FileText, DollarSign, Users, LayoutGrid, Navigation,
 } from "lucide-react";
 import { getRoles, createRole, updateRole, deleteRole } from "../../../api/roles";
-import { ALL_MODULES } from "../../../models/roles.model";
+import { ALL_MODULES, HOME_PAGE_OPTIONS } from "../../../models/roles.model";
 import type { Role, CreateRolePayload, ModuleKey } from "../../../models/roles.model";
 
 /* ── Module icons ────────────────────────────────── */
@@ -18,8 +18,10 @@ const MOD_ICON: Record<ModuleKey, React.ReactNode> = {
 
 /* ── Helpers ─────────────────────────────────────── */
 const ALL_KEYS = ALL_MODULES.map((m) => m.key);
-const isFullAccess = (perms: ModuleKey[]) =>
-  ALL_KEYS.every((k) => perms.includes(k));
+const isFullAccess = (perms: ModuleKey[]) => ALL_KEYS.every((k) => perms.includes(k));
+
+const homePageLabel = (key?: string) =>
+  HOME_PAGE_OPTIONS.find(o => o.key === (key ?? "home"))?.label ?? "Inicio";
 
 const BADGE_COLORS = [
   { bg: "rgba(239,68,68,0.1)",   text: "#FCA5A5", border: "rgba(239,68,68,0.25)" },
@@ -30,7 +32,12 @@ const BADGE_COLORS = [
 const roleColor = (idx: number) => BADGE_COLORS[idx % BADGE_COLORS.length];
 
 /* ── Form ────────────────────────────────────────── */
-const EMPTY_FORM = { name: "", description: "", permissions: [] as ModuleKey[] };
+const EMPTY_FORM = {
+  name: "",
+  description: "",
+  permissions: [] as ModuleKey[],
+  home_page: "home",
+};
 type FormState = typeof EMPTY_FORM;
 type Mode = "create" | "edit" | null;
 
@@ -45,7 +52,7 @@ function RoleModal({
   form: FormState;
   saving: boolean;
   error: string;
-  onChange: (k: "name" | "description", v: string) => void;
+  onChange: (k: "name" | "description" | "home_page", v: string) => void;
   onToggle: (m: ModuleKey) => void;
   onSelectAll: (all: boolean) => void;
   onSubmit: () => void;
@@ -70,7 +77,7 @@ function RoleModal({
 
         {error && <div style={mo.errorBanner}>{error}</div>}
 
-        {/* Campos */}
+        {/* Campos base */}
         <div style={{ display: "flex", flexDirection: "column", gap: 14, marginBottom: 20 }}>
           <div style={mo.fieldGroup}>
             <label style={mo.fieldLabel}>Nombre *</label>
@@ -90,16 +97,37 @@ function RoleModal({
               placeholder="Descripción opcional..."
             />
           </div>
+
+          {/* Página de inicio */}
+          <div style={mo.fieldGroup}>
+            <label style={mo.fieldLabel}>
+              <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                <Navigation size={12} color="#6B7280" />
+                Página de inicio del rol
+              </span>
+            </label>
+            <select
+              value={form.home_page}
+              onChange={(e) => onChange("home_page", e.target.value)}
+              style={{ ...mo.fieldInput, cursor: "pointer" }}
+            >
+              {HOME_PAGE_OPTIONS.map(opt => (
+                <option key={opt.key} value={opt.key} style={{ background: "#0F172A" }}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+            <span style={{ fontSize: 11, color: "#4B5563" }}>
+              Los usuarios con este rol aterrizarán aquí tras iniciar sesión.
+            </span>
+          </div>
         </div>
 
         {/* Permisos */}
         <div style={{ marginBottom: 24 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
             <span style={mo.fieldLabel}>Módulos con acceso</span>
-            <button
-              onClick={() => onSelectAll(!allChecked)}
-              style={mo.btnToggleAll}
-            >
+            <button onClick={() => onSelectAll(!allChecked)} style={mo.btnToggleAll}>
               {allChecked ? "Quitar todos" : "Seleccionar todos"}
             </button>
           </div>
@@ -113,7 +141,6 @@ function RoleModal({
                   onClick={() => onToggle(mod.key)}
                   style={{ ...mo.permRow, ...(active ? mo.permRowActive : {}) }}
                 >
-                  {/* Checkbox */}
                   <span style={{
                     width: 16, height: 16, borderRadius: 4, flexShrink: 0,
                     border: `2px solid ${active ? "#A78BFA" : "#374151"}`,
@@ -123,8 +150,6 @@ function RoleModal({
                   }}>
                     {active && <Check size={10} color="#fff" strokeWidth={3} />}
                   </span>
-
-                  {/* Icon */}
                   <span style={{
                     width: 28, height: 28, borderRadius: 8, flexShrink: 0,
                     background: active ? "rgba(124,58,237,0.15)" : "rgba(255,255,255,0.04)",
@@ -134,11 +159,7 @@ function RoleModal({
                   }}>
                     {MOD_ICON[mod.key]}
                   </span>
-
-                  <span style={{ fontSize: 13, fontWeight: active ? 600 : 400 }}>
-                    {mod.label}
-                  </span>
-
+                  <span style={{ fontSize: 13, fontWeight: active ? 600 : 400 }}>{mod.label}</span>
                   {active && (
                     <span style={{
                       marginLeft: "auto", fontSize: 11, color: "#A78BFA",
@@ -153,7 +174,6 @@ function RoleModal({
             })}
           </div>
 
-          {/* Resumen */}
           <div style={{ marginTop: 10, fontSize: 12, color: "#6B7280", textAlign: "right" }}>
             {form.permissions.length} de {ALL_MODULES.length} módulos seleccionados
           </div>
@@ -216,7 +236,6 @@ export default function RolesPage() {
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [formError, setFormError] = useState("");
-  // Celda de la matriz que está siendo actualizada
   const [matrixSaving, setMatrixSaving] = useState<string | null>(null);
   const [view, setView] = useState<"cards" | "matrix">("cards");
 
@@ -227,18 +246,21 @@ export default function RolesPage() {
 
   useEffect(() => { fetchRoles(); }, []);
 
-  /* Crear */
   const openCreate = () => {
     setForm(EMPTY_FORM); setFormError(""); setEditTarget(null); setMode("create");
   };
 
-  /* Editar */
   const openEdit = (role: Role) => {
-    setForm({ name: role.name, description: role.description ?? "", permissions: [...role.permissions] });
+    setForm({
+      name: role.name,
+      description: role.description ?? "",
+      permissions: [...role.permissions],
+      home_page: role.home_page ?? "home",
+    });
     setFormError(""); setEditTarget(role); setMode("edit");
   };
 
-  const handleChange = (k: "name" | "description", v: string) =>
+  const handleChange = (k: "name" | "description" | "home_page", v: string) =>
     setForm((p) => ({ ...p, [k]: v }));
 
   const handleToggle = (m: ModuleKey) =>
@@ -252,15 +274,24 @@ export default function RolesPage() {
   const handleSelectAll = (all: boolean) =>
     setForm((p) => ({ ...p, permissions: all ? [...ALL_KEYS] : [] }));
 
-  /* Guardar */
   const handleSubmit = async () => {
     if (!form.name.trim()) { setFormError("El nombre es obligatorio."); return; }
     try {
       setSaving(true); setFormError("");
       if (mode === "create") {
-        await createRole({ name: form.name.trim(), description: form.description.trim() || undefined, permissions: form.permissions } as CreateRolePayload);
+        await createRole({
+          name: form.name.trim(),
+          description: form.description.trim() || undefined,
+          permissions: form.permissions,
+          home_page: form.home_page,
+        } as CreateRolePayload);
       } else if (editTarget) {
-        await updateRole(editTarget.id, { name: form.name.trim(), description: form.description.trim() || undefined, permissions: form.permissions });
+        await updateRole(editTarget.id, {
+          name: form.name.trim(),
+          description: form.description.trim() || undefined,
+          permissions: form.permissions,
+          home_page: form.home_page,
+        });
       }
       setMode(null); fetchRoles();
     } catch (err: any) {
@@ -268,7 +299,6 @@ export default function RolesPage() {
     } finally { setSaving(false); }
   };
 
-  /* Eliminar */
   const handleDelete = async () => {
     if (!deleteTarget) return;
     try {
@@ -280,7 +310,6 @@ export default function RolesPage() {
     } finally { setDeleting(false); }
   };
 
-  /* Toggle directo en la matriz */
   const handleMatrixToggle = async (role: Role, module: ModuleKey) => {
     const key = `${role.id}-${module}`;
     if (matrixSaving) return;
@@ -307,7 +336,6 @@ export default function RolesPage() {
           </div>
         </div>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-          {/* Toggle vista */}
           <div style={st.viewToggle}>
             <button
               onClick={() => setView("cards")}
@@ -341,7 +369,6 @@ export default function RolesPage() {
             const full = isFullAccess(role.permissions);
             return (
               <div key={role.id} style={st.card}>
-
                 <div style={st.cardHeader}>
                   <div style={{ width: 42, height: 42, borderRadius: 12, flexShrink: 0,
                     background: colors.bg, border: `1px solid ${colors.border}`,
@@ -372,8 +399,16 @@ export default function RolesPage() {
                 </div>
 
                 {role.description && (
-                  <p style={{ fontSize: 13, color: "#9CA3AF", margin: 0, lineHeight: 1.5 }}>{role.description}</p>
+                  <p style={{ fontSize: 13, color: "#9CA3AF", margin: 0, lineHeight: 1.5 }}>
+                    {role.description}
+                  </p>
                 )}
+
+                {/* Home page badge */}
+                <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: "#6B7280" }}>
+                  <Navigation size={11} color="#6B7280" />
+                  <span>Inicio: <span style={{ color: "#9CA3AF", fontWeight: 600 }}>{homePageLabel(role.home_page)}</span></span>
+                </div>
 
                 <div style={{ borderTop: "1px solid rgba(255,255,255,0.05)", paddingTop: 12 }}>
                   <div style={{ fontSize: 11, fontWeight: 700, color: "#6B7280",
@@ -423,6 +458,7 @@ export default function RolesPage() {
                       </div>
                     </th>
                   ))}
+                  <th style={st.mth}>Inicio</th>
                   <th style={st.mth}>Acciones</th>
                 </tr>
               </thead>
@@ -432,7 +468,6 @@ export default function RolesPage() {
                   const full = isFullAccess(role.permissions);
                   return (
                     <tr key={role.id} style={st.mtr}>
-                      {/* Nombre del rol */}
                       <td style={st.mtd}>
                         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                           <div style={{ width: 30, height: 30, borderRadius: 8, flexShrink: 0,
@@ -456,7 +491,6 @@ export default function RolesPage() {
                         </div>
                       </td>
 
-                      {/* Celdas de permisos */}
                       {ALL_MODULES.map((mod) => {
                         const has = role.permissions.includes(mod.key);
                         const cellKey = `${role.id}-${mod.key}`;
@@ -473,8 +507,7 @@ export default function RolesPage() {
                               border: `2px solid ${has ? "rgba(124,58,237,0.4)" : "rgba(255,255,255,0.07)"}`,
                               background: has ? "rgba(124,58,237,0.15)" : "rgba(255,255,255,0.02)",
                               display: "flex", alignItems: "center", justifyContent: "center",
-                              transition: "all .15s",
-                              opacity: busy ? 0.4 : 1,
+                              transition: "all .15s", opacity: busy ? 0.4 : 1,
                             }}>
                               {busy ? (
                                 <div style={{ width: 10, height: 10, borderRadius: "50%",
@@ -488,7 +521,13 @@ export default function RolesPage() {
                         );
                       })}
 
-                      {/* Acciones fila */}
+                      {/* Columna inicio */}
+                      <td style={{ ...st.mtd, ...st.mtdCell }}>
+                        <span style={{ fontSize: 11, color: "#9CA3AF", whiteSpace: "nowrap" as const }}>
+                          {homePageLabel(role.home_page)}
+                        </span>
+                      </td>
+
                       <td style={st.mtd}>
                         <div style={{ display: "flex", gap: 6, justifyContent: "center" }}>
                           <button onClick={() => openEdit(role)} style={st.btnEdit} title="Editar">
@@ -523,7 +562,6 @@ export default function RolesPage() {
         />
       )}
 
-      {/* Spinner keyframe */}
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
@@ -547,22 +585,18 @@ const st: Record<string, React.CSSProperties> = {
   viewBtn: { background: "transparent", border: "none", color: "#6B7280",
     padding: "8px 12px", cursor: "pointer", display: "flex", alignItems: "center" },
   viewBtnActive: { background: "rgba(124,58,237,0.2)", color: "#C4B5FD" },
-
-  /* Cards */
   grid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(310px, 1fr))", gap: 20 },
   card: { background: "rgba(15,23,42,0.8)", border: "1px solid rgba(255,255,255,0.07)",
-    borderRadius: 16, padding: "20px", display: "flex", flexDirection: "column", gap: 14,
+    borderRadius: 16, padding: "20px", display: "flex", flexDirection: "column", gap: 12,
     boxShadow: "0 8px 24px rgba(0,0,0,0.2)" },
   cardHeader: { display: "flex", alignItems: "center", gap: 12 },
   btnEdit: { background: "rgba(37,99,235,0.12)", color: "#60A5FA", border: "1px solid rgba(37,99,235,0.25)",
     borderRadius: 8, padding: "7px 10px", cursor: "pointer", display: "flex", alignItems: "center" },
   btnDelete: { background: "rgba(220,38,38,0.1)", color: "#F87171", border: "1px solid rgba(220,38,38,0.2)",
     borderRadius: 8, padding: "7px 10px", cursor: "pointer", display: "flex", alignItems: "center" },
-
-  /* Matrix */
   matrixWrap: { background: "rgba(15,23,42,0.7)", border: "1px solid rgba(255,255,255,0.06)",
     borderRadius: 16, padding: "20px" },
-  matrix: { width: "100%", borderCollapse: "collapse", minWidth: 600 },
+  matrix: { width: "100%", borderCollapse: "collapse", minWidth: 700 },
   mth: { padding: "12px 16px", textAlign: "center" as const, fontSize: 11, fontWeight: 700,
     color: "#6B7280", textTransform: "uppercase" as const, letterSpacing: "0.05em",
     borderBottom: "1px solid rgba(255,255,255,0.06)", whiteSpace: "nowrap" as const },

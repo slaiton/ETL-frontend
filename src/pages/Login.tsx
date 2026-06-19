@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 
 const Login = () => {
   const navigate = useNavigate();
-  const { login, isAuthenticated } = useAuth();
+  const { login, isAuthenticated, homePage } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -17,9 +17,9 @@ const Login = () => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate("/", { replace: true });
+      navigate(homePage, { replace: true });
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate, homePage]);
 
   const onSubmit = async (data: any) => {
     setLoading(true);
@@ -27,7 +27,9 @@ const Login = () => {
 
     try {
       await login(data.user, data.password);
-      navigate("/");
+      // login() stores home_page in localStorage synchronously before setting state
+      const homePath = localStorage.getItem("home_page") ?? "/home";
+      navigate(homePath);
     } catch (err: any) {
       setError(err.message || "Error al iniciar sesión");
     } finally {
@@ -43,7 +45,7 @@ const Login = () => {
       <div className="absolute w-96 h-96 bg-blue-400 opacity-20 rounded-full blur-3xl bottom-10 -right-20 animate-pulse"></div>
 
       <div className="relative bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl rounded-2xl p-10 w-full max-w-md text-white animate-fadeIn">
-        
+
         <h2 className="text-3xl font-bold text-center mb-2">
           Bienvenido
         </h2>
@@ -61,8 +63,8 @@ const Login = () => {
             <input
               type="text"
               {...register("user", { required: true })}
-              className="w-full px-4 py-2 rounded-lg bg-white/20 border border-white/30 
-                         focus:outline-none focus:ring-2 focus:ring-blue-400 
+              className="w-full px-4 py-2 rounded-lg bg-white/20 border border-white/30
+                         focus:outline-none focus:ring-2 focus:ring-blue-400
                          transition-all duration-300"
               placeholder="Ingresa tu usuario"
               autoFocus
@@ -82,8 +84,8 @@ const Login = () => {
             <input
               type="password"
               {...register("password", { required: true, minLength: 3 })}
-              className="w-full px-4 py-2 rounded-lg bg-white/20 border border-white/30 
-                         focus:outline-none focus:ring-2 focus:ring-blue-400 
+              className="w-full px-4 py-2 rounded-lg bg-white/20 border border-white/30
+                         focus:outline-none focus:ring-2 focus:ring-blue-400
                          transition-all duration-300"
               placeholder="Ingresa tu contraseña"
             />
@@ -99,41 +101,23 @@ const Login = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2 rounded-lg bg-blue-600 hover:bg-blue-500 
-                       transition-all duration-300 font-semibold shadow-lg 
+            className="w-full py-2 rounded-lg bg-blue-600 hover:bg-blue-500
+                       transition-all duration-300 font-semibold shadow-lg
                        hover:shadow-blue-500/40 disabled:opacity-50"
           >
             {loading ? "Cargando..." : "Iniciar sesión"}
           </button>
         </form>
-
-        {/* <div className="text-center mt-6 text-sm text-blue-200">
-          ¿No tienes cuenta?{" "}
-          <button
-            type="button"
-            onClick={() => navigate("/register")}
-            className="text-blue-400 hover:text-blue-300 font-semibold transition"
-          >
-            Regístrate aquí
-          </button>
-        </div> */}
       </div>
 
-      {/* Animación personalizada */}
       <style>
         {`
           .animate-fadeIn {
             animation: fadeIn 0.8s ease-out;
           }
           @keyframes fadeIn {
-            from {
-              opacity: 0;
-              transform: translateY(20px);
-            }
-            to {
-              opacity: 1;
-              transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
           }
         `}
       </style>
