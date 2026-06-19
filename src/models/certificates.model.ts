@@ -31,6 +31,7 @@ export interface Certificate {
   consecutive: string;
   factus_bill_consecutive: string;
   waybill: string;
+  plaque: string | null;
   policy_id: number;
   start_at: string;      // ISO datetime
   end_at: string;        // ISO datetime

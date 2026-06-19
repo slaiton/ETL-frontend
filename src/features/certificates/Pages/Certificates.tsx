@@ -9,10 +9,10 @@ const formatDate = (d: Date) => d.toISOString().split("T")[0];
 
 /* ── Excel ────────────────────────────────────────────── */
 function exportToExcel(data: Certificate[]) {
-  const headers = ["ID", "Certificado", "Factura", "Waybill", "Póliza", "Inicio", "Fin", "Cliente", "URL Factura", "Valor"];
+  const headers = ["ID", "Certificado", "Factura", "Waybill", "Placa", "Póliza", "Inicio", "Fin", "Cliente", "URL Factura", "Valor"];
   const rows = data.map((r) => [
     r.id, r.consecutive, r.factus_bill_consecutive ?? "", r.waybill ?? "",
-    r.policy_id ?? "", r.start_at ? r.start_at.split("T")[0] : "",
+    r.plaque ?? "", r.policy_id ?? "", r.start_at ? r.start_at.split("T")[0] : "",
     r.end_at ? r.end_at.split("T")[0] : "", r.customer_id ?? "",
     r.bill_url ?? "", r.billing_price ?? "",
   ]);
@@ -33,6 +33,8 @@ interface FilterDraft {
   certificate: string;
   waybill: string;
   factus_bill_consecutive: string;
+  policy_id: string;
+  plaque: string;
   start_date: string;
   end_date: string;
   is_invoiced: string;
@@ -40,7 +42,7 @@ interface FilterDraft {
 
 const EMPTY: FilterDraft = {
   id: "", certificate: "", waybill: "", factus_bill_consecutive: "",
-  start_date: "", end_date: "", is_invoiced: "",
+  policy_id: "", plaque: "", start_date: "", end_date: "", is_invoiced: "",
 };
 
 function draftToFilters(draft: FilterDraft, page: number): CertificateFilters {
@@ -49,6 +51,8 @@ function draftToFilters(draft: FilterDraft, page: number): CertificateFilters {
   if (draft.certificate)              f.certificate = draft.certificate;
   if (draft.waybill)                  f.waybill = draft.waybill;
   if (draft.factus_bill_consecutive)  f.factus_bill_consecutive = draft.factus_bill_consecutive;
+  if (draft.policy_id)                f.policy_id = Number(draft.policy_id);
+  if (draft.plaque)                   f.plaque = draft.plaque;
   if (draft.start_date)               f.start_date = draft.start_date;
   if (draft.end_date)                 f.end_date = draft.end_date;
   if (draft.is_invoiced !== "")       f.is_invoiced = draft.is_invoiced === "true";
@@ -129,6 +133,20 @@ export default function Certificates() {
                 style={st.input}
               />
             </Field>
+            <Field label="Placa">
+              <input
+                type="text" placeholder="Ej: ABC123..."
+                value={draft.plaque} onChange={set("plaque")} onKeyDown={onKey}
+                style={st.input}
+              />
+            </Field>
+            <Field label="Póliza">
+              <input
+                type="number" placeholder="ID póliza..."
+                value={draft.policy_id} onChange={set("policy_id")} onKeyDown={onKey}
+                style={st.input}
+              />
+            </Field>
             <Field label="Factura Factus">
               <input
                 type="text" placeholder="Consecutivo factura..."
@@ -202,21 +220,22 @@ export default function Certificates() {
         <table style={st.table}>
           <thead>
             <tr style={st.thead}>
-              {["ID","Certificado","Factura","Waybill","Póliza","Inicio","Fin","Cliente","URL Factura","Valor","Descargar","Enviar factura"]
+              {["ID","Certificado","Factura","Waybill","Placa","Póliza","Inicio","Fin","Cliente","URL Factura","Valor","Descargar","Enviar factura"]
                 .map((h) => <th key={h} style={st.th}>{h}</th>)}
             </tr>
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={12} style={st.noData}>Cargando...</td></tr>
+              <tr><td colSpan={13} style={st.noData}>Cargando...</td></tr>
             ) : data.length === 0 ? (
-              <tr><td colSpan={12} style={st.noData}>Sin resultados</td></tr>
+              <tr><td colSpan={13} style={st.noData}>Sin resultados</td></tr>
             ) : data.map((item) => (
               <tr key={item.id} style={st.tableRow}>
                 <td style={st.td}>{item.id}</td>
                 <td style={st.td}>{item.consecutive}</td>
                 <td style={st.td}>{item.factus_bill_consecutive ?? "—"}</td>
                 <td style={st.td}>{item.waybill ?? "—"}</td>
+                <td style={st.td}>{item.plaque ?? "—"}</td>
                 <td style={st.td}>{item.policy_id ?? "—"}</td>
                 <td style={st.td}>{item.start_at ? item.start_at.split("T")[0] : "—"}</td>
                 <td style={st.td}>{item.end_at ? item.end_at.split("T")[0] : "—"}</td>

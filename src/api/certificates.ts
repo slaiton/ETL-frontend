@@ -9,6 +9,8 @@ export interface CertificateFilters {
   end_date?: string;
   is_invoiced?: boolean;
   customer_id?: number;
+  policy_id?: number;
+  plaque?: string;
   page?: number;
   per_page?: number;
 }
