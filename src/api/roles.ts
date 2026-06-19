@@ -12,10 +12,10 @@ export async function createRole(payload: CreateRolePayload): Promise<Role> {
 }
 
 export async function updateRole(id: number, payload: UpdateRolePayload): Promise<Role> {
-  const res = await axiosClient.patch(`/roles/${id}/`, payload);
+  const res = await axiosClient.patch(`/roles/${id}`, payload);
   return res.data?.data;
 }
 
 export async function deleteRole(id: number): Promise<void> {
-  await axiosClient.delete(`/roles/${id}/`);
+  await axiosClient.delete(`/roles/${id}`);
 }
