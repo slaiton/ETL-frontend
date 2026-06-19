@@ -1,25 +1,25 @@
 import { axiosClient } from "../shared/api/axiosClient";
 
-export async function getCertificates(
-  start_date: string,
-  end_date: string,
-  is_invoiced: string,
-  search?: string,
-  search_field?: string,
-  page?: number,
-  limit?: number
-): Promise<any> {
+export interface CertificateFilters {
+  id?: number;
+  certificate?: string;
+  waybill?: string;
+  factus_bill_consecutive?: string;
+  start_date?: string;
+  end_date?: string;
+  is_invoiced?: boolean;
+  customer_id?: number;
+  page?: number;
+  per_page?: number;
+}
+
+export async function getCertificates(filters: CertificateFilters = {}): Promise<any> {
+  const params: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(filters)) {
+    if (v !== undefined && v !== "" && v !== null) params[k] = v;
+  }
   try {
-    const response = await axiosClient.get("/certificates/get_all", {
-      params: {
-        start_date,
-        end_date,
-        is_invoiced,
-        ...(search ? { search, search_field } : {}),
-        ...(page !== undefined ? { page } : {}),
-        ...(limit !== undefined ? { limit } : {}),
-      },
-    });
+    const response = await axiosClient.get("/certificates/get_all", { params });
     return response.data;
   } catch (error) {
     console.error("❌ Error en getCertificates:", error);

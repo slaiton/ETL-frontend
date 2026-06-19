@@ -1,34 +1,36 @@
 import { useState, useCallback } from "react";
 import type { Certificate } from "../../../models/certificates.model";
-import { getCertificates } from "../../../api/certificates";
+import { getCertificates, type CertificateFilters } from "../../../api/certificates";
+
+interface CertificatesState {
+  data: Certificate[];
+  total: number;
+  totalPages: number;
+  loading: boolean;
+}
 
 export function useCertificates() {
-  const [data, setData] = useState<Certificate[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [state, setState] = useState<CertificatesState>({
+    data: [],
+    total: 0,
+    totalPages: 1,
+    loading: false,
+  });
 
-  const fetchData = useCallback(
-    async (
-      startDate: string,
-      endDate: string,
-      invoice: string,
-      search?: string,
-      searchField?: string,
-      page?: number,
-      limit?: number
-    ) => {
-      try {
-        setLoading(true);
-        const raw = await getCertificates(startDate, endDate, invoice, search, searchField, page, limit);
-        setData(raw?.data ?? []);
-      } catch (error) {
-        console.error("Error cargando certificados:", error);
-        setData([]);
-      } finally {
-        setLoading(false);
-      }
-    },
-    []
-  );
+  const fetchData = useCallback(async (filters: CertificateFilters) => {
+    setState((prev) => ({ ...prev, loading: true }));
+    try {
+      const raw = await getCertificates(filters);
+      setState({
+        data: raw?.data ?? [],
+        total: raw?.total ?? 0,
+        totalPages: raw?.total_pages ?? 1,
+        loading: false,
+      });
+    } catch {
+      setState({ data: [], total: 0, totalPages: 1, loading: false });
+    }
+  }, []);
 
-  return { data, loading, fetchData };
+  return { ...state, fetchData };
 }
