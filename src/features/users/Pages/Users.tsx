@@ -2,8 +2,9 @@ import { useEffect, useState } from "react";
 import { Users as UsersIcon, Plus, Pencil, Trash2, X, Check } from "lucide-react";
 import { useUsers } from "../hooks/useUsers";
 import { createUser, updateUser, deleteUser } from "../../../api/users";
+import { getRoles } from "../../../api/roles";
 import type { User, CreateUserPayload, UpdateUserPayload } from "../../../models/users.model";
-import { STATIC_ROLES } from "../../../models/users.model";
+import type { Role } from "../../../models/roles.model";
 
 /* ── Form state ──────────────────────────────────── */
 const emptyForm = {
@@ -12,11 +13,6 @@ const emptyForm = {
 
 type FormState = typeof emptyForm;
 type Mode = "create" | "edit" | null;
-
-/* ── Role label helper ───────────────────────────── */
-function roleName(roleId: number) {
-  return STATIC_ROLES.find((r) => r.id === roleId)?.name ?? `Rol ${roleId}`;
-}
 
 /* ── Avatar initials ─────────────────────────────── */
 function Initials({ name }: { name: string }) {
@@ -40,12 +36,13 @@ interface ModalProps {
   form: FormState;
   saving: boolean;
   error: string;
+  roles: Role[];
   onChange: (k: keyof FormState, v: string | number) => void;
   onSubmit: () => void;
   onClose: () => void;
 }
 
-function UserModal({ mode, form, saving, error, onChange, onSubmit, onClose }: ModalProps) {
+function UserModal({ mode, form, saving, error, roles, onChange, onSubmit, onClose }: ModalProps) {
   return (
     <div style={mo.overlay} onClick={onClose}>
       <div style={mo.card} onClick={(e) => e.stopPropagation()}>
@@ -77,7 +74,7 @@ function UserModal({ mode, form, saving, error, onChange, onSubmit, onClose }: M
               onChange={(e) => onChange("role_id", Number(e.target.value))}
               style={mo.fieldInput}
             >
-              {STATIC_ROLES.map((r) => (
+              {roles.map((r) => (
                 <option key={r.id} value={r.id}>{r.name}</option>
               ))}
             </select>
@@ -146,6 +143,7 @@ function DeleteConfirm({ user, onConfirm, onCancel, deleting }: DeleteConfirmPro
 /* ── Page ────────────────────────────────────────── */
 export default function UsersPage() {
   const { users, loading, fetchUsers } = useUsers();
+  const [roles, setRoles] = useState<Role[]>([]);
   const [mode, setMode] = useState<Mode>(null);
   const [editTarget, setEditTarget] = useState<User | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<User | null>(null);
@@ -155,7 +153,10 @@ export default function UsersPage() {
   const [formError, setFormError] = useState("");
   const [search, setSearch] = useState("");
 
-  useEffect(() => { fetchUsers(); }, [fetchUsers]);
+  useEffect(() => {
+    fetchUsers();
+    getRoles().then(setRoles).catch(() => {});
+  }, [fetchUsers]);
 
   const openCreate = () => {
     setForm(emptyForm);
@@ -313,7 +314,9 @@ export default function UsersPage() {
                   <td style={st.td}>{user.email}</td>
                   <td style={st.td}>{user.phone || "—"}</td>
                   <td style={st.td}>
-                    <span style={st.roleBadge}>{roleName(user.role_id)}</span>
+                    <span style={st.roleBadge}>
+                      {roles.find((r) => r.id === user.role_id)?.name ?? `Rol ${user.role_id}`}
+                    </span>
                   </td>
                   <td style={{ ...st.td, textAlign: "center" }}>
                     <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
@@ -347,6 +350,7 @@ export default function UsersPage() {
           form={form}
           saving={saving}
           error={formError}
+          roles={roles}
           onChange={handleChange}
           onSubmit={handleSubmit}
           onClose={closeModal}

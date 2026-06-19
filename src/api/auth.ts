@@ -7,8 +7,9 @@ interface LoginParams {
 
 interface AuthResponse {
   access_token: string;
-  owner_id?: string;
-  id_rol?: string;
+  token_type: string;
+  role_id?: number;
+  permissions?: string[];
 }
 
 export const authenticateUser = async (
@@ -26,19 +27,16 @@ export const authenticateUser = async (
     );
     return response.data;
   } catch (error: any) {
-    if (error.response?.status === 401) {
-      throw new Error("Credenciales inválidas");
-    }
-    throw new Error(
-      error.response?.data?.message || "Error al conectar con el servidor"
-    );
+    if (error.response?.status === 401) throw new Error("Credenciales inválidas");
+    if (error.response?.status === 403) throw new Error(error.response?.data?.detail ?? "Usuario desactivado");
+    throw new Error(error.response?.data?.message || "Error al conectar con el servidor");
   }
 };
 
 export const logout = () => {
   localStorage.removeItem("auth_token");
-  localStorage.removeItem("person");
-  localStorage.removeItem("profile");
-  localStorage.removeItem("email");
+  localStorage.removeItem("user");
+  localStorage.removeItem("role_id");
+  localStorage.removeItem("permissions");
   window.location.href = "/login";
 };

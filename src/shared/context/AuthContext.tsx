@@ -1,10 +1,13 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { authenticateUser } from "../../api/auth";
+import type { ModuleKey } from "../../models/roles.model";
 
 interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
-  error: string | null;
+  roleId: number | null;
+  permissions: ModuleKey[];
+  hasAccess: (module: ModuleKey) => boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
 }
@@ -12,78 +15,61 @@ interface AuthContextType {
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  // const [idClient, setIdClient] = useState<string | null>(null);
-  // const [idRole, setIdRole] = useState<string | null>(null);
-  // const [user, setUser] = useState(null);
+  const [roleId, setRoleId] = useState<number | null>(null);
+  const [permissions, setPermissions] = useState<ModuleKey[]>([]);
 
-  // Cargar el estado de autenticación al iniciar la app
   useEffect(() => {
     const token = localStorage.getItem("auth_token");
-    // const clientId = localStorage.getItem("client");
-    // const idRole = localStorage.getItem("profile");
+    const storedRole = localStorage.getItem("role_id");
+    const storedPerms = localStorage.getItem("permissions");
 
     setIsAuthenticated(!!token);
-    // setIdClient(clientId);
-    // setIdRole(idRole);
-
+    setRoleId(storedRole ? Number(storedRole) : null);
+    setPermissions(storedPerms ? (JSON.parse(storedPerms) as ModuleKey[]) : []);
     setIsLoading(false);
   }, []);
 
   const login = async (user: string, password: string) => {
-    try {
-      const result = await authenticateUser({ user, password }, true);
-      
-      if (result.access_token) {
-        localStorage.setItem("auth_token", result.access_token);
-        localStorage.setItem("user", user);
-        setIsAuthenticated(true);
-      }
+    const result = await authenticateUser({ user, password }, true);
 
+    if (!result.access_token) throw new Error("Respuesta inválida del servidor");
 
-      if (result.id_rol) {
-        localStorage.setItem("profile", result.id_rol);
-        // setIdRole( result.id_rol);
-    
-      }
+    const perms: ModuleKey[] = (result.permissions as ModuleKey[]) ?? [];
+    const role = result.role_id ?? null;
 
+    localStorage.setItem("auth_token", result.access_token);
+    localStorage.setItem("user", user);
+    if (role !== null) localStorage.setItem("role_id", String(role));
+    localStorage.setItem("permissions", JSON.stringify(perms));
 
-    } catch (err) {
-      let message = "Error al iniciar sesión";
-      if (typeof err === "object" && err !== null) {
-        // Try to access response.data.detail if available
-        message =
-          (err as any)?.response?.data?.detail ||
-          (err as any)?.message ||
-          message;
-      } else if (typeof err === "string") {
-        message = err;
-      }
-      setError(message);
-      throw new Error(message);
-    }
+    setIsAuthenticated(true);
+    setRoleId(role);
+    setPermissions(perms);
   };
 
   const logout = () => {
     localStorage.removeItem("auth_token");
+    localStorage.removeItem("user");
+    localStorage.removeItem("role_id");
+    localStorage.removeItem("permissions");
     setIsAuthenticated(false);
+    setRoleId(null);
+    setPermissions([]);
   };
 
+  const hasAccess = (module: ModuleKey) => permissions.includes(module);
+
   return (
-    <AuthContext.Provider
-      value={{ isAuthenticated, isLoading, error, login, logout }}
-    >
+    <AuthContext.Provider value={{ isAuthenticated, isLoading, roleId, permissions, hasAccess, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
 export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth debe usarse dentro de AuthProvider");
-  }
-  return context;
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth debe usarse dentro de AuthProvider");
+  return ctx;
 };

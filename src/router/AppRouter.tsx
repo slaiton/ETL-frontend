@@ -16,46 +16,22 @@ export default function AppRouter() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/logout" element={<Logout />} />
-          <Route
-            path="/"
-            element={
-              <PrivateRoute>
-                <Dashboard />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/certificates"
-            element={
-              <PrivateRoute>
-                <Certificates />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/invoices"
-            element={
-              <PrivateRoute>
-                <Invoices />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/users"
-            element={
-              <PrivateRoute>
-                <UsersPage />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/roles"
-            element={
-              <PrivateRoute>
-                <RolesPage />
-              </PrivateRoute>
-            }
-          />
+
+          <Route path="/" element={
+            <PrivateRoute module="dashboard"><Dashboard /></PrivateRoute>
+          } />
+          <Route path="/certificates" element={
+            <PrivateRoute module="certificates"><Certificates /></PrivateRoute>
+          } />
+          <Route path="/invoices" element={
+            <PrivateRoute module="invoices"><Invoices /></PrivateRoute>
+          } />
+          <Route path="/users" element={
+            <PrivateRoute module="users"><UsersPage /></PrivateRoute>
+          } />
+          <Route path="/roles" element={
+            <PrivateRoute module="roles"><RolesPage /></PrivateRoute>
+          } />
         </Routes>
       </Layout>
     </BrowserRouter>
