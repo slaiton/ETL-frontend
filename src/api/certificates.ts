@@ -1,5 +1,11 @@
 import { axiosClient } from "../shared/api/axiosClient";
 
+export interface PolicyOption {
+  policy_id: number;
+  external_code: string;
+  beneficiary_name: string;
+}
+
 export interface CertificateFilters {
   id?: number;
   certificate?: string;
@@ -13,6 +19,15 @@ export interface CertificateFilters {
   plaque?: string;
   page?: number;
   per_page?: number;
+}
+
+export async function getPolicyOptions(): Promise<PolicyOption[]> {
+  try {
+    const response = await axiosClient.get("/policies/");
+    return response.data?.data ?? [];
+  } catch {
+    return [];
+  }
 }
 
 export async function getCertificates(filters: CertificateFilters = {}): Promise<any> {

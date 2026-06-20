@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import type { Certificate } from "../../../models/certificates.model";
 import { reportInvoice } from "../../../api/invoices";
 import { useCertificates } from "../hooks/useCertificates";
-import type { CertificateFilters } from "../../../api/certificates";
+import { getPolicyOptions, type CertificateFilters, type PolicyOption } from "../../../api/certificates";
 
 const PER_PAGE = 20;
 const formatDate = (d: Date) => d.toISOString().split("T")[0];
@@ -65,14 +65,16 @@ export default function Certificates() {
   const [applied, setApplied] = useState<FilterDraft>(EMPTY);
   const [page, setPage] = useState(1);
   const [loadingId, setLoadingId] = useState<number | null>(null);
+  const [policyOptions, setPolicyOptions] = useState<PolicyOption[]>([]);
 
   const { data, total, totalPages, loading, fetchData } = useCertificates();
 
   const hasFilters = Object.values(applied).some((v) => v !== "");
 
-  /* Carga inicial — últimos 20 */
+  /* Carga inicial */
   useEffect(() => {
     fetchData({ page: 1, per_page: PER_PAGE });
+    getPolicyOptions().then(setPolicyOptions);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -141,11 +143,21 @@ export default function Certificates() {
               />
             </Field>
             <Field label="Póliza">
-              <input
-                type="number" placeholder="ID póliza..."
-                value={draft.policy_id} onChange={set("policy_id")} onKeyDown={onKey}
-                style={st.input}
-              />
+              <div style={st.selectWrap}>
+                <select
+                  value={draft.policy_id}
+                  onChange={set("policy_id")}
+                  style={st.select}
+                >
+                  <option value="">Todas las pólizas</option>
+                  {policyOptions.map((p) => (
+                    <option key={p.policy_id} value={String(p.policy_id)}>
+                      {p.external_code} — {p.beneficiary_name}
+                    </option>
+                  ))}
+                </select>
+                <span style={st.chevron}>▾</span>
+              </div>
             </Field>
             <Field label="Factura Factus">
               <input

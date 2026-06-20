@@ -345,11 +345,11 @@ function getStyles(isMobile: boolean): Record<string, React.CSSProperties> {
     },
     select: {
       minWidth: isMobile ? "100%" : "150px",
-      padding: "10px 12px", borderRadius: 10,
+      padding: "10px 32px 10px 12px", borderRadius: 10,
       border: "1px solid rgba(255,255,255,0.08)",
-      background: "rgba(15,23,42,0.95)", color: "#fff",
+      backgroundColor: "rgba(15,23,42,0.95)", color: "#fff",
       fontSize: 13, outline: "none", boxSizing: "border-box",
-      colorScheme: "dark", minHeight: 42, cursor: "pointer",
+      minHeight: 42, cursor: "pointer",
     },
     button: {
       background: "#2563EB", color: "#fff", border: "none",
