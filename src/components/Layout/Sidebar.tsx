@@ -1,7 +1,7 @@
 import React from "react";
 import { sidebarStyles } from "./layout.styles";
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, BarChart3, FileText, DollarSign, Users, Shield, LogOut } from "lucide-react";
+import { LayoutDashboard, BarChart3, TrendingUp, FileText, DollarSign, Users, Shield, LogOut } from "lucide-react";
 import { useAuth } from "../../shared/context/AuthContext";
 import type { ModuleKey } from "../../models/roles.model";
 
@@ -15,6 +15,7 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { label: "Inicio",       path: "/home",         icon: <LayoutDashboard size={18} />, module: null },
   { label: "Dashboard",    path: "/",             icon: <BarChart3 size={18} />,       module: "dashboard" },
+  { label: "Reportes",     path: "/reports",      icon: <TrendingUp size={18} />,     module: "reports" },
   { label: "Certificados", path: "/certificates", icon: <FileText size={18} />,        module: "certificates" },
   { label: "Facturas",     path: "/invoices",     icon: <DollarSign size={18} />,      module: "invoices" },
   { label: "Usuarios",     path: "/users",        icon: <Users size={18} />,           module: "users" },

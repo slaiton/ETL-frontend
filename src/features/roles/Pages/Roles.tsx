@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   Shield, Plus, Pencil, Trash2, X, Check,
-  Home, FileText, DollarSign, Users, LayoutGrid, Navigation,
+  Home, FileText, TrendingUp, DollarSign, Users, LayoutGrid, Navigation,
 } from "lucide-react";
 import { getRoles, createRole, updateRole, deleteRole } from "../../../api/roles";
 import { ALL_MODULES, HOME_PAGE_OPTIONS } from "../../../models/roles.model";
@@ -10,6 +10,7 @@ import type { Role, CreateRolePayload, ModuleKey } from "../../../models/roles.m
 /* ── Module icons ────────────────────────────────── */
 const MOD_ICON: Record<ModuleKey, React.ReactNode> = {
   dashboard:    <Home size={13} />,
+  reports:      <TrendingUp size={13} />,
   certificates: <FileText size={13} />,
   invoices:     <DollarSign size={13} />,
   users:        <Users size={13} />,

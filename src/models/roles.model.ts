@@ -1,5 +1,6 @@
 export const ALL_MODULES = [
   { key: "dashboard",    label: "Dashboard" },
+  { key: "reports",      label: "Reportes" },
   { key: "certificates", label: "Certificados" },
   { key: "invoices",     label: "Facturas" },
   { key: "users",        label: "Usuarios" },
@@ -11,6 +12,7 @@ export type ModuleKey = (typeof ALL_MODULES)[number]["key"];
 export const HOME_PAGE_OPTIONS = [
   { key: "home",         label: "Inicio",        path: "/home" },
   { key: "dashboard",    label: "Dashboard",     path: "/" },
+  { key: "reports",      label: "Reportes",      path: "/reports" },
   { key: "certificates", label: "Certificados",  path: "/certificates" },
   { key: "invoices",     label: "Facturas",      path: "/invoices" },
   { key: "users",        label: "Usuarios",      path: "/users" },

@@ -25,6 +25,11 @@ const SHORTCUTS: Shortcut[] = [
     accent: "#60A5FA", bg: "rgba(37,99,235,0.08)", border: "rgba(37,99,235,0.2)",
   },
   {
+    module: "reports", label: "Reportes", desc: "Generación y visualización de reportes",
+    path: "/reports", Icon: TrendingUp,
+    accent: "#F87171", bg: "rgba(220,38,38,0.08)", border: "rgba(220,38,38,0.2)",
+  },
+  {
     module: "certificates", label: "Certificados", desc: "Consulta y gestión de certificados",
     path: "/certificates", Icon: FileText,
     accent: "#34D399", bg: "rgba(16,185,129,0.08)", border: "rgba(16,185,129,0.2)",

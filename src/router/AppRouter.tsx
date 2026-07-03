@@ -3,6 +3,7 @@ import { PrivateRoute } from "../ui/PrivateRoute";
 import Layout from "../components/Layout/Layout";
 import Home from "../features/home/Pages/Home";
 import Dashboard from "../features/dashboard/Pages/Dashboard";
+import Reports from "../features/reports/Pages/Reports";
 import Certificates from "../features/certificates/Pages/Certificates";
 import UsersPage from "../features/users/Pages/Users";
 import RolesPage from "../features/roles/Pages/Roles";
@@ -23,6 +24,9 @@ export default function AppRouter() {
           } />
           <Route path="/" element={
             <PrivateRoute module="dashboard"><Dashboard /></PrivateRoute>
+          } />
+          <Route path="/reports" element={
+            <PrivateRoute module="reports"><Reports /></PrivateRoute>
           } />
           <Route path="/certificates" element={
             <PrivateRoute module="certificates"><Certificates /></PrivateRoute>
