@@ -195,7 +195,7 @@ const REFERENCE_SECONDS = 20 * 60; // 1200 segundos
               ? remainingSeconds > 0
                 ? `Descargando... ${formatTime(remainingSeconds)}`
                 : "Casi listo..."
-              : "↓ Descargar CSV"}
+              : "Descargar CSV"}
           </button>
 
           {downloading && (
