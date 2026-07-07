@@ -26,63 +26,29 @@ export async function getReports(
     });
 
     return response.data;
-  } catch (error) {
+  } catch {
     return null;
   }
 }
 
-let cancelDownload = false;
-export function wasDownloadCancelled() {
-  return cancelDownload;
-}
-
-export function cancelReportDownload() {
-  cancelDownload = true;
-}
-
-export async function downloadReport(
+export async function downloadReportExcel(
   filters: ReportFilters
-): Promise<any[]> {
+): Promise<any> {
 
-  cancelDownload = false;
+  const params: Record<string, unknown> = {};
 
-  let allData: any[] = [];
-  let page = 1;
-  let totalPages = 1;
-
-  do {
-    if (cancelDownload) {
-      console.log("Descarga cancelada por el usuario.");
-      break;
+  for (const [key, value] of Object.entries(filters)) {
+    if (value !== undefined && value !== "" && value !== null) {
+      params[key] = value;
     }
-
-    console.log("Consultando página:", page);
-
-    const response = await getReports({
-      ...filters,
-      page,
-      per_page: 100,
-    });
-
-    if (!response) {
-      console.log("No hubo respuesta");
-      break;
-    }
-
-    allData = [...allData, ...(response.data ?? [])];
-
-    totalPages = response.total_pages ?? 1;
-
-    page++;
-
-  } while (page <= totalPages);
-
-  console.log("Total registros:", allData.length);
-
-    if (cancelDownload) {
-      cancelDownload = false;
-      return [];
-    }
-
-    return allData;
   }
+
+  const response = await axiosClient.get(
+    "/certificates/report/excel",
+    {
+      params,
+    }
+  );
+
+  return response.data;
+}

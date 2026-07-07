@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { getPolicyOptions, type PolicyOption } from "../../../api/certificates";
-import { downloadReport, cancelReportDownload, wasDownloadCancelled} from "../../../api/reports";
+import {downloadReportExcel} from "../../../api/reports";
 import { useReports } from "../hooks/useReports";
 
 const PER_PAGE = 20;
@@ -14,9 +14,6 @@ const [policyId, setPolicyId] = useState("");
 const [page, setPage] = useState(1);
 const [policies, setPolicies] = useState<PolicyOption[]>([]);
 const [downloading, setDownloading] = useState(false);
-const [remainingSeconds, setRemainingSeconds] = useState(0);
-const REFERENCE_RECORDS = 54000;
-const REFERENCE_SECONDS = 20 * 60; // 1200 segundos
 
   useEffect(() => {
     const loadPolicies = async () => {
@@ -52,70 +49,38 @@ const REFERENCE_SECONDS = 20 * 60; // 1200 segundos
   };
 
   const handleDownload = async () => {
-
     setDownloading(true);
 
-    const estimatedSeconds = Math.max(
-      5,
-      Math.round((total * REFERENCE_SECONDS) / REFERENCE_RECORDS)
-    );
-
-    setRemainingSeconds(estimatedSeconds);
-
-    const timer = setInterval(() => {
-      setRemainingSeconds((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    const data = await downloadReport({
+    try {
+      const response = await downloadReportExcel({
         start_date: startDate,
         end_date: endDate,
         policy_id: policyId ? Number(policyId) : undefined,
-    });
-    clearInterval(timer);
-    setDownloading(false);
-    setRemainingSeconds(0);
+      });
 
-    if (wasDownloadCancelled()) {
+      if (!response) {
+        alert("No fue posible generar el reporte.");
         return;
-    }
+      }
 
-    if (!data.length) {
-        alert("Descarga cancelada.");
-        return;
-    }
+      const binary = atob(response.file_base64);
 
-      const headers = Object.keys(data[0]);
+      const bytes = new Uint8Array(binary.length);
 
-      const rows = data.map((item: any) =>
-        headers.map(header => item[header])
-      );
+      for (let i = 0; i < binary.length; i++) {
+        bytes[i] = binary.charCodeAt(i);
+      }
 
-      const csv = [
-        headers.join(","),
-        ...rows.map(row =>
-          row.map(value =>
-            `"${String(value ?? "").replace(/"/g, '""')}"`
-          ).join(",")
-        )
-      ].join("\n");
-
-      const blob = new Blob(
-        ["\uFEFF" + csv],
-        { type: "text/csv;charset=utf-8;" }
-      );
+      const blob = new Blob([bytes], {
+        type: response.mime_type,
+      });
 
       const url = window.URL.createObjectURL(blob);
 
       const link = document.createElement("a");
 
       link.href = url;
-      link.download = "ReportePolizas.csv";
+      link.download = response.filename;
 
       document.body.appendChild(link);
 
@@ -124,12 +89,13 @@ const REFERENCE_SECONDS = 20 * 60; // 1200 segundos
       document.body.removeChild(link);
 
       window.URL.revokeObjectURL(url);
-  };
 
-  const formatTime = (seconds: number) => {
-    const m = Math.floor(seconds / 60);
-    const s = seconds % 60;
-    return `${m}:${s.toString().padStart(2, "0")}`;
+    } catch (error) {
+      console.error(error);
+      alert("Error descargando el reporte.");
+    } finally {
+      setDownloading(false);
+    }
   };
 
   const hasFilters = startDate !== "" || endDate !== "" || policyId !== "";
@@ -192,24 +158,9 @@ const REFERENCE_SECONDS = 20 * 60; // 1200 segundos
             style={{ ...st.btnExcel, opacity: downloading ? 0.6 : 1, cursor: downloading ? "not-allowed" : "pointer" }}
           >
             {downloading
-              ? remainingSeconds > 0
-                ? `Descargando... ${formatTime(remainingSeconds)}`
-                : "Casi listo..."
-              : "Descargar CSV"}
+              ? "Generando Excel..."
+              : "Descargar Excel"}
           </button>
-
-          {downloading && (
-            <button
-              onClick={() => {
-                cancelReportDownload();
-                setDownloading(false);
-                setRemainingSeconds(0);
-              }}
-              style={st.btnCancel}
-            >
-              ✕ Cancelar
-            </button>
-          )}
         </div>
       </div>
 
