@@ -14,6 +14,7 @@ const [policyId, setPolicyId] = useState("");
 const [page, setPage] = useState(1);
 const [policies, setPolicies] = useState<PolicyOption[]>([]);
 const [downloading, setDownloading] = useState(false);
+const [downloadError, setDownloadError] = useState("");
 
   useEffect(() => {
     const loadPolicies = async () => {
@@ -49,6 +50,20 @@ const [downloading, setDownloading] = useState(false);
   };
 
   const handleDownload = async () => {
+    setDownloadError("");
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    const diffDays =
+      (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24);
+
+    if (diffDays > 62) {
+      setDownloadError(
+        "El rango máximo permitido para descargar reportes es de dos meses."
+      );
+      return;
+    }
     setDownloading(true);
 
     try {
@@ -92,13 +107,22 @@ const [downloading, setDownloading] = useState(false);
 
     } catch (error) {
       console.error(error);
-      alert("Error descargando el reporte.");
-    } finally {
+        if ((error as any)?.response?.status === 504) {
+          setDownloadError(
+            "La consulta supera el volumen permitido. Para todas las pólizas el rango máximo es de dos meses."
+          );
+        } else {
+          setDownloadError(
+            "No fue posible generar el reporte. Intente nuevamente."
+          );
+        }
+        } finally {
       setDownloading(false);
     }
   };
 
   const hasFilters = startDate !== "" || endDate !== "" || policyId !== "";
+  const canDownload = startDate !== "" && endDate !== "" && !downloading;
 
   return (
     <div style={st.container}>
@@ -151,17 +175,23 @@ const [downloading, setDownloading] = useState(false);
           <button onClick={handleSearch} style={st.btnSearch}>
             Consultar
           </button>
-
           <button
             onClick={handleDownload}
-            disabled={downloading}
-            style={{ ...st.btnExcel, opacity: downloading ? 0.6 : 1, cursor: downloading ? "not-allowed" : "pointer" }}
+            disabled={!canDownload}
+            style={{
+              ...st.btnExcel,
+              opacity: canDownload ? 1 : 0.5,
+              cursor: canDownload ? "pointer" : "not-allowed",
+            }}
           >
-            {downloading
-              ? "Generando Excel..."
-              : "Descargar Excel"}
+            {downloading ? "Generando Excel..." : "Descargar Excel"}
           </button>
         </div>
+          {downloadError && (
+            <div style={st.downloadError}>
+          {downloadError}
+    </div>
+  )}
       </div>
 
       {loading && <p style={st.badge}>Cargando reporte...</p>}
@@ -329,6 +359,9 @@ const st: Record<string, React.CSSProperties> = {
     padding: "8px 16px", cursor: "pointer", fontWeight: 500, fontSize: 13,
   },
   pageInfo: { fontWeight: 500, color: "#9CA3AF", fontSize: 13 },
+  downloadError: {
+    color: "#F87171", fontSize: 13, marginTop: 10, textAlign: "center",
+  },
 };
 
 export default Reports;
