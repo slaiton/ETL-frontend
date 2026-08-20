@@ -262,7 +262,7 @@ export default function Certificates() {
                   <button
                     style={st.btnAction}
                     onClick={() => {
-                      const url = `${import.meta.env.VITE_API_BASE_URL}/new_certificates/${btoa(String(item.id))}/download_view`;
+                      const url = `${import.meta.env.VITE_API_CERTIFICATE_URL}/new_certificates/${btoa(String(item.id))}/download_view`;
                       window.open(url, "_blank");
                     }}
                   >
