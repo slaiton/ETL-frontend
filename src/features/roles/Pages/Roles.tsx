@@ -12,6 +12,7 @@ const MOD_ICON: Record<ModuleKey, React.ReactNode> = {
   dashboard:    <Home size={13} />,
   reports:      <TrendingUp size={13} />,
   certificates: <FileText size={13} />,
+  certificates_basic: <FileText size={13} />,
   invoices:     <DollarSign size={13} />,
   users:        <Users size={13} />,
   roles:        <Shield size={13} />,
