@@ -35,6 +35,11 @@ const SHORTCUTS: Shortcut[] = [
     accent: "#34D399", bg: "rgba(16,185,129,0.08)", border: "rgba(16,185,129,0.2)",
   },
   {
+    module: "certificates", label: "Certificados (Básico)", desc: "Consulta y gestión de certificados básicos",
+    path: "/certificates/basic", Icon: FileText,
+    accent: "#34D399", bg: "rgba(16,185,129,0.08)", border: "rgba(16,185,129,0.2)",
+  },
+  {
     module: "invoices", label: "Facturas", desc: "Reporte y seguimiento de facturas",
     path: "/invoices", Icon: DollarSign,
     accent: "#FBBF24", bg: "rgba(245,158,11,0.08)", border: "rgba(245,158,11,0.2)",
