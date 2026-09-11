@@ -40,6 +40,11 @@ const SHORTCUTS: Shortcut[] = [
     accent: "#34D399", bg: "rgba(16,185,129,0.08)", border: "rgba(16,185,129,0.2)",
   },
   {
+    module: "certificates_cancellation", label: "Anulación de certificados", desc: "Proceso de anulación de certificados",
+    path: "/certificates/cancellation", Icon: FileText,
+    accent: "#F87171", bg: "rgba(220,38,38,0.08)", border: "rgba(220,38,38,0.2)",
+  },
+  {
     module: "invoices", label: "Facturas", desc: "Reporte y seguimiento de facturas",
     path: "/invoices", Icon: DollarSign,
     accent: "#FBBF24", bg: "rgba(245,158,11,0.08)", border: "rgba(245,158,11,0.2)",
