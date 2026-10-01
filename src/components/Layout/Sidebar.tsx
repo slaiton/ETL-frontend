@@ -18,6 +18,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Reportes",     path: "/reports",      icon: <TrendingUp size={18} />,     module: "reports" },
   { label: "Certificados", path: "/certificates", icon: <FileText size={18} />,        module: "certificates" },
   { label: "Certificados (Básico)", path: "/certificates/basic", icon: <FileText size={18} />, module: "certificates" },
+  { label: "Anulación de certificados", path: "/certificates/cancellation", icon: <FileText size={18} />, module: "certificates" },
   { label: "Facturas",     path: "/invoices",     icon: <DollarSign size={18} />,      module: "invoices" },
   { label: "Usuarios",     path: "/users",        icon: <Users size={18} />,           module: "users" },
   { label: "Roles",        path: "/roles",        icon: <Shield size={18} />,          module: "roles" },

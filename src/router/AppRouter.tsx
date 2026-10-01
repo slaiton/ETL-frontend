@@ -5,6 +5,7 @@ import Home from "../features/home/Pages/Home";
 import Dashboard from "../features/dashboard/Pages/Dashboard";
 import Reports from "../features/reports/Pages/Reports";
 import Certificates from "../features/certificates/Pages/Certificates";
+import CertificateCancellation from"../features/certificates/Pages/CertificateCancellation";
 import CertificatesBasic from "../features/certificates/Pages/CertificatesBasic";
 import UsersPage from "../features/users/Pages/Users";
 import RolesPage from "../features/roles/Pages/Roles";
@@ -32,6 +33,10 @@ export default function AppRouter() {
           <Route path="/certificates" element={
             <PrivateRoute module="certificates"><Certificates /></PrivateRoute>
           } />
+          <Route path="/certificates/cancellation"element={
+            <PrivateRoute module="certificates"><CertificateCancellation /></PrivateRoute>
+          }
+          />
           <Route path="/certificates/basic" element={
             <PrivateRoute module="certificates"><CertificatesBasic /></PrivateRoute>
           } />
