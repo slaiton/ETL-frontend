@@ -173,6 +173,9 @@ export default function Dashboard() {
               <option value="2">Vigía</option>
               <option value="3">TDH</option>
               <option value="6">Coltanques</option>
+              <option value="7">Travesa SAS</option>
+              <option value="8">Agil Cargo SAS</option>
+              <option value="9">Sercarga SAS</option>
             </select>
           </label>
           <button type="submit" style={st.button} disabled={isRefreshing}>
