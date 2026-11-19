@@ -2,7 +2,6 @@ import { useState } from "react";
 import type { CertificatesResponse } from "../../../models/certificates.model";
 import { getCertificates } from "../../../api/indicators";
 
-
 const today = new Date().toISOString().split("T")[0];
 const firstDayOfMonth = new Date();
 firstDayOfMonth.setDate(1);
@@ -10,12 +9,22 @@ const defaultStart = firstDayOfMonth.toISOString().split("T")[0];
 
 export const initialDashboardData: CertificatesResponse = {
   invoices: {
-    issued: 0, cancelled: 0, no_invoice: 0,
-    total_billing: 0, start_date: "", end_date: "", customer_id: null,
+    issued: 0,
+    cancelled: 0,
+    no_invoice: 0,
+    total_billing: 0,
+    start_date: "",
+    end_date: "",
+    customer_id: null,
   },
   general: {
-    issued: 0, cancelled: 0, no_invoice: 0,
-    total_billing: 0, start_date: "", end_date: "", customer_id: null,
+    issued: 0,
+    cancelled: 0,
+    no_invoice: 0,
+    total_billing: 0,
+    start_date: "",
+    end_date: "",
+    customer_id: null,
   },
   entities_general: { total_created: 0, total_sent: 0, total_signed: 0 },
   entities_period_created: [],
@@ -30,17 +39,54 @@ export function useDashboard() {
   const [period, setPeriod] = useState("day");
   const [policy_id, setPolicy] = useState("");
   const [loading, setLoading] = useState(false);
+  const [policiesByCompany, setPoliciesByCompany] = useState<
+    {
+      company: string;
+      total: number;
+    }[]
+  >([]);
 
   const fetchData = async () => {
     try {
       setLoading(true);
-      const response = await getCertificates(startDate, endDate, period, policy_id);
+      const response = await getCertificates(
+        startDate,
+        endDate,
+        period,
+        policy_id,
+      );
+      const companies: { id: string; name: string }[] = [
+        { id: "5", name: "Vigía2" },
+        { id: "2", name: "Vigía" },
+        { id: "3", name: "TDH" },
+        { id: "6", name: "Coltanques" },
+        { id: "7", name: "Travesa" },
+        { id: "8", name: "Agil Cargo" },
+        { id: "9", name: "Sercarga" },
+      ];
+      const companyResults = await Promise.all(
+        companies.map(async (company) => {
+          const companyData = await getCertificates(
+            startDate,
+            endDate,
+            period,
+            company.id,
+          );
+
+          return {
+            company: company.name,
+            total: companyData?.general?.issued ?? 0,
+          };
+        }),
+      );
+      setPoliciesByCompany(companyResults);
       if (response) {
         setData({
           invoices: response.invoices ?? initialDashboardData.invoices,
           general: response.general ?? initialDashboardData.general,
           period: response.period ?? [],
-          entities_general: response.entities_general ?? initialDashboardData.entities_general,
+          entities_general:
+            response.entities_general ?? initialDashboardData.entities_general,
           entities_period_created: response.entities_period_created ?? [],
           entities_period_signed: response.entities_period_signed ?? [],
         });
@@ -56,11 +102,16 @@ export function useDashboard() {
 
   return {
     data,
-    startDate, setStartDate,
-    endDate, setEndDate,
-    period, setPeriod,
-    policy_id, setPolicy,
+    startDate,
+    setStartDate,
+    endDate,
+    setEndDate,
+    period,
+    setPeriod,
+    policy_id,
+    setPolicy,
     loading,
     fetchData,
+    policiesByCompany,
   };
 }
