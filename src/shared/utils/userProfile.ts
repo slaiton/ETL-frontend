@@ -4,6 +4,8 @@ export interface UserProfile {
   last_name?: string | null;
   email: string;
   role_name?: string | null;
+  /** Cliente asociado; null/ausente = usuario interno */
+  client?: { id: number; name: string | null } | null;
 }
 
 export const USER_PROFILE_KEY = "user_profile";

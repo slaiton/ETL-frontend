@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import {
   LayoutDashboard, TrendingUp, FileText, FileSearch, FileX,
-  Receipt, Users, ShieldCheck,
+  Receipt, Users, ShieldCheck, Building2,
 } from "lucide-react";
 import { useAuth } from "../../../shared/context/AuthContext";
 import type { ModuleKey } from "../../../models/roles.model";
@@ -76,6 +76,12 @@ export default function Home() {
           {greeting},{" "}
           <span>{firstName}</span>
         </h1>
+        {user?.client?.name && (
+          <p className="home__client">
+            <Building2 size={14} aria-hidden="true" />
+            {user.client.name}
+          </p>
+        )}
         {apps.length > 0 && (
           <p className="home__sub">Selecciona una aplicación para comenzar</p>
         )}

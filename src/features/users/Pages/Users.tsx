@@ -1,14 +1,16 @@
 import { useEffect, useState } from "react";
-import { Users as UsersIcon, Plus, Pencil, Trash2, X, Check } from "lucide-react";
+import { Users as UsersIcon, Plus, Pencil, Trash2, X, Check, Building2 } from "lucide-react";
 import { useUsers } from "../hooks/useUsers";
-import { createUser, updateUser, deleteUser } from "../../../api/users";
+import { createUser, updateUser, deleteUser, getClients } from "../../../api/users";
 import { getRoles } from "../../../api/roles";
-import type { User, CreateUserPayload, UpdateUserPayload } from "../../../models/users.model";
+import type { User, CreateUserPayload, UpdateUserPayload, ClientOption } from "../../../models/users.model";
 import type { Role } from "../../../models/roles.model";
 
 /* ── Form state ──────────────────────────────────── */
 const emptyForm = {
   first_name: "", last_name: "", phone: "", email: "", password: "", role_id: 1,
+  /** "" = sin cliente (usuario interno) */
+  client_id: "",
 };
 
 type FormState = typeof emptyForm;
@@ -37,12 +39,19 @@ interface ModalProps {
   saving: boolean;
   error: string;
   roles: Role[];
+  clients: ClientOption[];
+  /** Nombre del cliente actual, por si ya no aparece en el listado */
+  currentClientName?: string | null;
   onChange: (k: keyof FormState, v: string | number) => void;
   onSubmit: () => void;
   onClose: () => void;
 }
 
-function UserModal({ mode, form, saving, error, roles, onChange, onSubmit, onClose }: ModalProps) {
+function UserModal({
+  mode, form, saving, error, roles, clients, currentClientName, onChange, onSubmit, onClose,
+}: ModalProps) {
+  const missingCurrent =
+    !!form.client_id && !clients.some((c) => String(c.client_id) === form.client_id);
   return (
     <div style={mo.overlay} onClick={onClose}>
       <div style={mo.card} onClick={(e) => e.stopPropagation()}>
@@ -78,6 +87,27 @@ function UserModal({ mode, form, saving, error, roles, onChange, onSubmit, onClo
                 <option key={r.id} value={r.id}>{r.name}</option>
               ))}
             </select>
+          </div>
+          <div style={{ ...mo.fieldGroup, gridColumn: "1 / -1" }}>
+            <label style={mo.fieldLabel}>Cliente</label>
+            <select
+              value={form.client_id}
+              onChange={(e) => onChange("client_id", e.target.value)}
+              style={mo.fieldInput}
+            >
+              <option value="">Sin cliente (usuario interno)</option>
+              {missingCurrent && (
+                <option value={form.client_id}>{currentClientName ?? `Cliente ${form.client_id}`}</option>
+              )}
+              {clients.map((c) => (
+                <option key={c.client_id} value={String(c.client_id)}>
+                  {c.name}{c.document_number ? ` — NIT ${c.document_number}` : ""}
+                </option>
+              ))}
+            </select>
+            <span style={mo.fieldHint}>
+              Clientes con pólizas de facturación. El cliente se muestra en el perfil del usuario.
+            </span>
           </div>
         </div>
 
@@ -144,6 +174,7 @@ function DeleteConfirm({ user, onConfirm, onCancel, deleting }: DeleteConfirmPro
 export default function UsersPage() {
   const { users, loading, fetchUsers } = useUsers();
   const [roles, setRoles] = useState<Role[]>([]);
+  const [clients, setClients] = useState<ClientOption[]>([]);
   const [mode, setMode] = useState<Mode>(null);
   const [editTarget, setEditTarget] = useState<User | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<User | null>(null);
@@ -156,6 +187,7 @@ export default function UsersPage() {
   useEffect(() => {
     fetchUsers();
     getRoles().then(setRoles).catch(() => {});
+    getClients().then(setClients);
   }, [fetchUsers]);
 
   const openCreate = () => {
@@ -173,6 +205,7 @@ export default function UsersPage() {
       email: user.email,
       password: "",
       role_id: user.role_id,
+      client_id: user.client_id ? String(user.client_id) : "",
     });
     setFormError("");
     setEditTarget(user);
@@ -205,7 +238,11 @@ export default function UsersPage() {
           password: form.password,
           role_id: form.role_id,
         };
-        await createUser(payload);
+        const created = await createUser(payload);
+        // /register es público y no recibe cliente: se asigna con el PATCH protegido
+        if (form.client_id && created?.id) {
+          await updateUser(created.id, { client_id: Number(form.client_id) });
+        }
       } else if (editTarget) {
         const payload: UpdateUserPayload = {
           first_name: form.first_name,
@@ -214,6 +251,11 @@ export default function UsersPage() {
           email: form.email,
           role_id: form.role_id,
         };
+        // Solo se envía si cambió (null = quitar cliente)
+        const originalClient = editTarget.client_id ? String(editTarget.client_id) : "";
+        if (form.client_id !== originalClient) {
+          payload.client_id = form.client_id ? Number(form.client_id) : null;
+        }
         await updateUser(editTarget.id, payload);
       }
       closeModal();
@@ -287,14 +329,15 @@ export default function UsersPage() {
               <th style={st.th}>Email</th>
               <th style={st.th}>Teléfono</th>
               <th style={st.th}>Rol</th>
+              <th style={st.th}>Cliente</th>
               <th style={{ ...st.th, textAlign: "center" }}>Acciones</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={5} style={st.noData}>Cargando usuarios...</td></tr>
+              <tr><td colSpan={6} style={st.noData}>Cargando usuarios...</td></tr>
             ) : filtered.length === 0 ? (
-              <tr><td colSpan={5} style={st.noData}>
+              <tr><td colSpan={6} style={st.noData}>
                 {search ? `Sin resultados para "${search}"` : "No hay usuarios registrados"}
               </td></tr>
             ) : (
@@ -317,6 +360,16 @@ export default function UsersPage() {
                     <span style={st.roleBadge}>
                       {roles.find((r) => r.id === user.role_id)?.name ?? `Rol ${user.role_id}`}
                     </span>
+                  </td>
+                  <td style={st.td}>
+                    {user.client_name ? (
+                      <span style={st.clientCell}>
+                        <Building2 size={14} color="#38BDF8" style={{ flexShrink: 0 }} />
+                        {user.client_name}
+                      </span>
+                    ) : (
+                      <span style={{ color: "#6B7280" }}>Interno</span>
+                    )}
                   </td>
                   <td style={{ ...st.td, textAlign: "center" }}>
                     <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
@@ -351,6 +404,8 @@ export default function UsersPage() {
           saving={saving}
           error={formError}
           roles={roles}
+          clients={clients}
+          currentClientName={editTarget?.client_name}
           onChange={handleChange}
           onSubmit={handleSubmit}
           onClose={closeModal}
@@ -411,7 +466,7 @@ const st: Record<string, React.CSSProperties> = {
     border: "1px solid rgba(255,255,255,0.06)",
     background: "rgba(15,23,42,0.7)",
   },
-  table: { width: "100%", borderCollapse: "collapse", minWidth: 650 },
+  table: { width: "100%", borderCollapse: "collapse", minWidth: 780 },
   thead: { background: "rgba(15,23,42,0.9)" },
   th: {
     padding: "13px 16px", textAlign: "left",
@@ -435,6 +490,10 @@ const st: Record<string, React.CSSProperties> = {
     background: "rgba(99,102,241,0.12)", color: "#A5B4FC",
     border: "1px solid rgba(99,102,241,0.25)",
     borderRadius: 999, padding: "3px 10px", fontSize: 12, fontWeight: 600,
+  },
+  clientCell: {
+    display: "inline-flex", alignItems: "center", gap: 6,
+    color: "#E5E7EB", fontWeight: 500,
   },
   btnEdit: {
     background: "rgba(37,99,235,0.12)", color: "#60A5FA",
@@ -483,6 +542,7 @@ const mo: Record<string, React.CSSProperties> = {
   },
   fieldGroup: { display: "flex", flexDirection: "column", gap: 6 },
   fieldLabel: { fontSize: 12, fontWeight: 600, color: "#6B7280", letterSpacing: "0.04em" },
+  fieldHint: { fontSize: 11, color: "#6B7280" },
   fieldInput: {
     background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)",
     borderRadius: 8, padding: "10px 12px", color: "#E5E7EB",

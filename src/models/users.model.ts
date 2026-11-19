@@ -7,6 +7,17 @@ export interface User {
   role_id: number;
   is_active?: boolean;
   created_at?: string;
+  /** Cliente asociado (beneficiario de pólizas); null = usuario interno */
+  client_id?: number | null;
+  client_name?: string | null;
+}
+
+/** Cliente asignable a un usuario */
+export interface ClientOption {
+  client_id: number;
+  name: string;
+  document_number: string | null;
+  policies: number;
 }
 
 export interface CreateUserPayload {
@@ -24,4 +35,6 @@ export interface UpdateUserPayload {
   phone?: string;
   email?: string;
   role_id?: number;
+  /** null desasocia el cliente */
+  client_id?: number | null;
 }

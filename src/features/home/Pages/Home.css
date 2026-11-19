@@ -47,6 +47,20 @@
   color: transparent;
 }
 
+.home__client {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 14px 0 0;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #bae6fd;
+  background: rgba(0, 135, 246, 0.14);
+  border: 1px solid rgba(0, 150, 246, 0.35);
+}
+
 .home__sub {
   margin: 10px 0 0;
   font-size: 14px;

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { ChevronDown, House, LogOut, Menu } from "lucide-react";
+import { Building2, ChevronDown, House, LogOut, Menu } from "lucide-react";
 import BrandLogo from "../../shared/brand/BrandLogo";
 import { useAuth } from "../../shared/context/AuthContext";
 import { getFullName, getInitials } from "../../shared/utils/userProfile";
@@ -37,6 +37,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, sidebarOpen = false }) => 
   const fullName = getFullName(user);
   const initials = getInitials(user);
   const roleName = user?.role_name;
+  const clientName = user?.client?.name;
 
   return (
     <header className="topbar">
@@ -67,7 +68,9 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, sidebarOpen = false }) => 
           <span className="avatar">{initials}</span>
           <span className="user-chip__text">
             <span className="user-chip__name">{fullName}</span>
-            {roleName && <span className="user-chip__role">{roleName}</span>}
+            {(clientName || roleName) && (
+              <span className="user-chip__role">{clientName ?? roleName}</span>
+            )}
           </span>
           <ChevronDown size={16} className="user-chip__chevron" />
         </button>
@@ -84,6 +87,15 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, sidebarOpen = false }) => 
                 {roleName && <span className="role-badge">{roleName}</span>}
               </div>
             </div>
+            {clientName && (
+              <div className="user-dropdown__client">
+                <span className="user-dropdown__client-icon"><Building2 size={16} /></span>
+                <div>
+                  <div className="user-dropdown__client-label">Cliente</div>
+                  <div className="user-dropdown__client-name">{clientName}</div>
+                </div>
+              </div>
+            )}
             <div className="user-dropdown__actions">
               <Link to="/home" className="menu-item" role="menuitem" onClick={() => setOpen(false)}>
                 <House size={16} /> Inicio

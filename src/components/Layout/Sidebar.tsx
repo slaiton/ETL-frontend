@@ -77,7 +77,9 @@ const Sidebar: React.FC<SidebarProps> = ({ open = false, onClose }) => {
           <span className="avatar">{getInitials(user)}</span>
           <div className="sidebar__user-text">
             <div className="sidebar__user-name">{getFullName(user)}</div>
-            <div className="sidebar__user-meta">{user?.role_name ?? user?.email}</div>
+            <div className="sidebar__user-meta">
+              {user?.client?.name ?? user?.role_name ?? user?.email}
+            </div>
           </div>
           <Link to="/logout" className="icon-btn sidebar__logout" aria-label="Cerrar sesión" title="Cerrar sesión">
             <LogOut size={18} />
