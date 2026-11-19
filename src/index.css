@@ -15,6 +15,20 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  /* ── Paleta de marca (logo Analytics) ─────────────────────── */
+  --brand-white: #ffffff;
+  --brand-cyan: #00e5ec;
+  --brand-sky: #0096f6;
+  --brand-blue: #0087f6;
+  --brand-blue-strong: #005ff9;
+  --brand-gradient: linear-gradient(135deg, #00d4ee 0%, #0087f6 55%, #005ff9 100%);
+  --brand-tint: #eaf5ff;        /* fondos suaves sobre blanco */
+  --brand-tint-strong: #d6ecff;
+  --brand-ink: #0f172a;         /* texto sobre blanco */
+  --brand-ink-muted: #64748b;
+  --brand-border: #e2e8f0;
+  --brand-font: Montserrat, "Segoe UI", system-ui, sans-serif;
 }
 
 * {

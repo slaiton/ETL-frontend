@@ -3,7 +3,7 @@ import { axiosClient } from "../shared/api/axiosClient";
 export interface PolicyOption {
   policy_id: number;
   external_code: string;
-  beneficiary_name: string;
+  beneficiary_name: string | null;
 }
 
 export interface CertificateFilters {

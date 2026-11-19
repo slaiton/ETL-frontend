@@ -73,6 +73,7 @@ export default function Dashboard() {
     setPolicy,
     loading,
     fetchData,
+    policies,
     policiesByCompany,
   } = useDashboard();
 
@@ -214,11 +215,16 @@ export default function Dashboard() {
     ],
   };
   const policiesByCompanyData = {
-    labels: policiesByCompany.map((item) => item.company),
+    /* Etiqueta en dos líneas: nombre + código (hay clientes con varias pólizas) */
+    labels: policiesByCompany.map((item) =>
+      item.beneficiary_name
+        ? [item.beneficiary_name, item.external_code ?? ""]
+        : (item.external_code ?? `Póliza ${item.policy_id}`),
+    ),
     datasets: [
       {
         label: "Pólizas emitidas",
-        data: policiesByCompany.map((item) => item.total),
+        data: policiesByCompany.map((item) => item.issued),
         backgroundColor: "#3B82F6",
       },
     ],
@@ -293,14 +299,13 @@ export default function Dashboard() {
               style={st.select}
             >
               <option value="">Todos</option>
-              <option value="5">Vigía2</option>
-              <option value="2">Vigía</option>
-              <option value="3">TDH</option>
-              <option value="6">Coltanques</option>
-              <option value="7">Travesa SAS</option>
-              <option value="8">Agil Cargo SAS</option>
-              <option value="9">Sercarga SAS</option>
-              <option value="11">Sercarga SAS</option>
+              {policies.map((p) => (
+                <option key={p.policy_id} value={String(p.policy_id)}>
+                  {p.beneficiary_name
+                    ? `${p.beneficiary_name} — ${p.external_code}`
+                    : p.external_code}
+                </option>
+              ))}
             </select>
           </label>
           <button type="submit" style={st.button} disabled={isRefreshing}>

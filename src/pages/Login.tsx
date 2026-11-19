@@ -1,19 +1,30 @@
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { useAuth } from "../shared/context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import {
+  AlertCircle, ArrowRight, BarChart3, Eye, EyeOff, FileText, Lock, Mail, Receipt,
+} from "lucide-react";
+import { useAuth } from "../shared/context/AuthContext";
+import BrandLogo from "../shared/brand/BrandLogo";
+import "./Login.css";
+
+interface LoginForm {
+  user: string;
+  password: string;
+}
 
 const Login = () => {
   const navigate = useNavigate();
   const { login, isAuthenticated, homePage } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm();
+  } = useForm<LoginForm>();
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -21,106 +32,129 @@ const Login = () => {
     }
   }, [isAuthenticated, navigate, homePage]);
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: LoginForm) => {
     setLoading(true);
     setError(null);
 
     try {
-      await login(data.user, data.password);
-      // login() stores home_page in localStorage synchronously before setting state
+      await login(data.user.trim(), data.password);
+      // login() guarda home_page en localStorage antes de actualizar el estado
       const homePath = localStorage.getItem("home_page") ?? "/home";
       navigate(homePath);
-    } catch (err: any) {
-      setError(err.message || "Error al iniciar sesión");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error al iniciar sesión");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="relative flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-950 via-blue-900 to-blue-800 overflow-hidden">
+    <div className="login">
+      {/* ── Panel de marca (escritorio) ─────────────────── */}
+      <aside className="login__brand">
+        <BrandLogo tone="onDark" monochrome height={52} />
 
-      {/* Efecto decorativo blur */}
-      <div className="absolute w-96 h-96 bg-blue-600 opacity-30 rounded-full blur-3xl top-10 -left-20 animate-pulse"></div>
-      <div className="absolute w-96 h-96 bg-blue-400 opacity-20 rounded-full blur-3xl bottom-10 -right-20 animate-pulse"></div>
+        <div className="login__headline">
+          <h1>Los indicadores de tu operación, en un solo lugar</h1>
+          <p>
+            Consulta certificados, facturación y terceros con datos actualizados
+            desde el data warehouse.
+          </p>
+          <ul className="login__features">
+            <li><span><BarChart3 size={17} /></span>Dashboard en tiempo real</li>
+            <li><span><FileText size={17} /></span>Consulta y reportes de certificados</li>
+            <li><span><Receipt size={17} /></span>Seguimiento de facturas</li>
+          </ul>
+        </div>
 
-      <div className="relative bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl rounded-2xl p-10 w-full max-w-md text-white animate-fadeIn">
-
-        <h2 className="text-3xl font-bold text-center mb-2">
-          Bienvenido
-        </h2>
-        <p className="text-center text-blue-200 mb-8">
-          Ingresa tus credenciales para continuar
+        <p className="login__brand-footer">
+          © {new Date().getFullYear()} Tecnología Funcional
         </p>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+        <div className="login__bars" aria-hidden="true">
+          <span style={{ height: 90 }} />
+          <span style={{ height: 140 }} />
+          <span style={{ height: 200 }} />
+        </div>
+      </aside>
 
-          {/* Usuario */}
-          <div>
-            <label className="block text-sm mb-1 text-blue-200">
-              Usuario
-            </label>
-            <input
-              type="text"
-              {...register("user", { required: true })}
-              className="w-full px-4 py-2 rounded-lg bg-white/20 border border-white/30
-                         focus:outline-none focus:ring-2 focus:ring-blue-400
-                         transition-all duration-300"
-              placeholder="Ingresa tu usuario"
-              autoFocus
-            />
-            {errors.user && (
-              <p className="text-red-300 text-sm mt-1">
-                El usuario es obligatorio
-              </p>
-            )}
+      {/* ── Formulario ─────────────────────────────────── */}
+      <main className="login__panel">
+        <div className="login__card">
+          <div className="login__mobile-logo">
+            <BrandLogo tone="onLight" height={44} />
           </div>
 
-          {/* Password */}
-          <div>
-            <label className="block text-sm mb-1 text-blue-200">
-              Contraseña
-            </label>
-            <input
-              type="password"
-              {...register("password", { required: true, minLength: 3 })}
-              className="w-full px-4 py-2 rounded-lg bg-white/20 border border-white/30
-                         focus:outline-none focus:ring-2 focus:ring-blue-400
-                         transition-all duration-300"
-              placeholder="Ingresa tu contraseña"
-            />
-          </div>
+          <h2 className="login__title">Iniciar sesión</h2>
+          <p className="login__subtitle">Ingresa tus credenciales para continuar</p>
 
-          {error && (
-            <div className="bg-red-500/20 border border-red-400 text-red-200 p-2 rounded-lg text-sm text-center">
-              {error}
+          <form onSubmit={handleSubmit(onSubmit)} className="login__form" noValidate>
+            <div className={`field${errors.user ? " field--error" : ""}`}>
+              <label htmlFor="login-user">Correo electrónico</label>
+              <div className="field__control">
+                <Mail size={18} className="field__icon" />
+                <input
+                  id="login-user"
+                  type="text"
+                  inputMode="email"
+                  autoComplete="username"
+                  placeholder="nombre@empresa.com"
+                  autoFocus
+                  aria-invalid={!!errors.user}
+                  {...register("user", { required: true })}
+                />
+              </div>
+              {errors.user && <p className="field__error">Ingresa tu correo</p>}
             </div>
-          )}
 
-          {/* Botón */}
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-2 rounded-lg bg-blue-600 hover:bg-blue-500
-                       transition-all duration-300 font-semibold shadow-lg
-                       hover:shadow-blue-500/40 disabled:opacity-50"
-          >
-            {loading ? "Cargando..." : "Iniciar sesión"}
-          </button>
-        </form>
-      </div>
+            <div className={`field${errors.password ? " field--error" : ""}`}>
+              <label htmlFor="login-password">Contraseña</label>
+              <div className="field__control">
+                <Lock size={18} className="field__icon" />
+                <input
+                  id="login-password"
+                  type={showPassword ? "text" : "password"}
+                  className="has-toggle"
+                  autoComplete="current-password"
+                  placeholder="••••••••"
+                  aria-invalid={!!errors.password}
+                  {...register("password", { required: true, minLength: 3 })}
+                />
+                <button
+                  type="button"
+                  className="field__toggle"
+                  onClick={() => setShowPassword((v) => !v)}
+                  aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+              {errors.password && <p className="field__error">Ingresa tu contraseña</p>}
+            </div>
 
-      <style>
-        {`
-          .animate-fadeIn {
-            animation: fadeIn 0.8s ease-out;
-          }
-          @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to   { opacity: 1; transform: translateY(0); }
-          }
-        `}
-      </style>
+            {error && (
+              <div className="login__alert" role="alert">
+                <AlertCircle size={18} style={{ flexShrink: 0 }} />
+                <span>{error}</span>
+              </div>
+            )}
+
+            <button type="submit" className="login__submit" disabled={loading}>
+              {loading ? (
+                <>
+                  <span className="login__spinner" /> Ingresando…
+                </>
+              ) : (
+                <>
+                  Iniciar sesión <ArrowRight size={18} />
+                </>
+              )}
+            </button>
+          </form>
+
+          <p className="login__legal">Analytics by Tecnología Funcional</p>
+        </div>
+      </main>
     </div>
   );
 };

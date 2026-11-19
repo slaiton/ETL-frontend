@@ -1,53 +1,89 @@
 import React from "react";
-import { sidebarStyles } from "./layout.styles";
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, BarChart3, TrendingUp, FileText, DollarSign, Users, Shield, LogOut } from "lucide-react";
+import {
+  House, LayoutDashboard, TrendingUp, FileText, FileSearch, FileX,
+  Receipt, Users, ShieldCheck, LogOut, X,
+} from "lucide-react";
 import { useAuth } from "../../shared/context/AuthContext";
 import type { ModuleKey } from "../../models/roles.model";
+import BrandLogo from "../../shared/brand/BrandLogo";
+import { getFullName, getInitials } from "../../shared/utils/userProfile";
 
 interface NavItem {
   label: string;
   path: string;
-  icon: React.ReactNode;
+  Icon: React.ComponentType<{ size?: number }>;
   module: ModuleKey | null;
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { label: "Inicio",       path: "/home",         icon: <LayoutDashboard size={18} />, module: null },
-  { label: "Dashboard",    path: "/",             icon: <BarChart3 size={18} />,       module: "dashboard" },
-  { label: "Reportes",     path: "/reports",      icon: <TrendingUp size={18} />,     module: "reports" },
-  { label: "Certificados", path: "/certificates", icon: <FileText size={18} />,        module: "certificates" },
-  { label: "Certificados (Básico)", path: "/certificates/basic", icon: <FileText size={18} />, module: "certificates" },
-  { label: "Anulación de certificados", path: "/certificates/cancellation", icon: <FileText size={18} />, module: "certificates" },
-  { label: "Facturas",     path: "/invoices",     icon: <DollarSign size={18} />,      module: "invoices" },
-  { label: "Usuarios",     path: "/users",        icon: <Users size={18} />,           module: "users" },
-  { label: "Roles",        path: "/roles",        icon: <Shield size={18} />,          module: "roles" },
-  { label: "Cerrar Sesión",path: "/logout",       icon: <LogOut size={18} />,          module: null },
+  { label: "Inicio",                    path: "/home",                      Icon: House,           module: null },
+  { label: "Dashboard",                 path: "/",                          Icon: LayoutDashboard, module: "dashboard" },
+  { label: "Reportes",                  path: "/reports",                   Icon: TrendingUp,      module: "reports" },
+  { label: "Certificados",              path: "/certificates",              Icon: FileText,        module: "certificates" },
+  { label: "Certificados (Básico)",     path: "/certificates/basic",        Icon: FileSearch,      module: "certificates" },
+  { label: "Anulación de certificados", path: "/certificates/cancellation", Icon: FileX,           module: "certificates" },
+  { label: "Facturas",                  path: "/invoices",                  Icon: Receipt,         module: "invoices" },
+  { label: "Usuarios",                  path: "/users",                     Icon: Users,           module: "users" },
+  { label: "Roles",                     path: "/roles",                     Icon: ShieldCheck,     module: "roles" },
 ];
 
-const Sidebar: React.FC<{ open?: boolean; onLinkClick?: () => void }> = ({ open = false, onLinkClick }) => {
-  const { hasAccess } = useAuth();
+interface SidebarProps {
+  open?: boolean;
+  onClose?: () => void;
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ open = false, onClose }) => {
+  const { hasAccess, user } = useAuth();
   const location = useLocation();
 
   const visible = NAV_ITEMS.filter((item) => item.module === null || hasAccess(item.module));
 
   return (
-    <aside style={{ ...sidebarStyles.sidebar, transform: open ? "translateX(0)" : "translateX(-100%)" }}>
-      <div style={sidebarStyles.sidebarLogoContainer}>
-        <img src="/tf2.png" alt="Logo" style={sidebarStyles.sidebarLogo} />
+    <aside
+      className={`sidebar${open ? " is-open" : ""}`}
+      aria-label="Menú principal"
+      aria-hidden={!open}
+      inert={!open}
+    >
+      <div className="sidebar__header">
+        <BrandLogo tone="onLight" height={34} />
+        <button type="button" className="icon-btn" onClick={onClose} aria-label="Cerrar menú">
+          <X size={20} />
+        </button>
       </div>
 
-      {visible.map((item) => {
-        const isActive = location.pathname === item.path;
-        return (
-          <Link key={item.path} to={item.path} style={{ textDecoration: "none" }} onClick={onLinkClick}>
-            <div style={{ ...sidebarStyles.navItem, ...(isActive ? sidebarStyles.navItemActive : {}) }}>
-              <span style={sidebarStyles.navIcon}>{item.icon}</span>
-              <span>{item.label}</span>
-            </div>
+      <nav className="sidebar__nav">
+        <p className="sidebar__section">Menú</p>
+        {visible.map(({ label, path, Icon }) => {
+          const isActive = location.pathname === path;
+          return (
+            <Link
+              key={path}
+              to={path}
+              onClick={onClose}
+              className={`sidebar__link${isActive ? " is-active" : ""}`}
+              aria-current={isActive ? "page" : undefined}
+            >
+              <Icon size={18} />
+              <span>{label}</span>
+            </Link>
+          );
+        })}
+      </nav>
+
+      <div className="sidebar__footer">
+        <div className="sidebar__user">
+          <span className="avatar">{getInitials(user)}</span>
+          <div className="sidebar__user-text">
+            <div className="sidebar__user-name">{getFullName(user)}</div>
+            <div className="sidebar__user-meta">{user?.role_name ?? user?.email}</div>
+          </div>
+          <Link to="/logout" className="icon-btn sidebar__logout" aria-label="Cerrar sesión" title="Cerrar sesión">
+            <LogOut size={18} />
           </Link>
-        );
-      })}
+        </div>
+      </div>
     </aside>
   );
 };

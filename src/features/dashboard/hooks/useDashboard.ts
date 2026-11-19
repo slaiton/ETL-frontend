@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { CertificatesResponse } from "../../../models/certificates.model";
-import { getCertificates } from "../../../api/indicators";
+import type { PolicyOption } from "../../../api/certificates";
+import { getCertificates, getDashboardPolicies } from "../../../api/indicators";
 
 const today = new Date().toISOString().split("T")[0];
 const firstDayOfMonth = new Date();
@@ -30,6 +31,7 @@ export const initialDashboardData: CertificatesResponse = {
   entities_period_created: [],
   entities_period_signed: [],
   period: [],
+  policies: [],
 };
 
 export function useDashboard() {
@@ -39,12 +41,12 @@ export function useDashboard() {
   const [period, setPeriod] = useState("day");
   const [policy_id, setPolicy] = useState("");
   const [loading, setLoading] = useState(false);
-  const [policiesByCompany, setPoliciesByCompany] = useState<
-    {
-      company: string;
-      total: number;
-    }[]
-  >([]);
+  const [policies, setPolicies] = useState<PolicyOption[]>([]);
+
+  /* Pólizas vigentes con facturación — opciones del filtro "Cliente" */
+  useEffect(() => {
+    getDashboardPolicies().then(setPolicies);
+  }, []);
 
   const fetchData = async () => {
     try {
@@ -55,36 +57,12 @@ export function useDashboard() {
         period,
         policy_id,
       );
-      const companies: { id: string; name: string }[] = [
-        { id: "5", name: "Vigía2" },
-        { id: "2", name: "Vigía" },
-        { id: "3", name: "TDH" },
-        { id: "6", name: "Coltanques" },
-        { id: "7", name: "Travesa" },
-        { id: "8", name: "Agil Cargo" },
-        { id: "9", name: "Sercarga" },
-      ];
-      const companyResults = await Promise.all(
-        companies.map(async (company) => {
-          const companyData = await getCertificates(
-            startDate,
-            endDate,
-            period,
-            company.id,
-          );
-
-          return {
-            company: company.name,
-            total: companyData?.general?.issued ?? 0,
-          };
-        }),
-      );
-      setPoliciesByCompany(companyResults);
       if (response) {
         setData({
           invoices: response.invoices ?? initialDashboardData.invoices,
           general: response.general ?? initialDashboardData.general,
           period: response.period ?? [],
+          policies: response.policies ?? [],
           entities_general:
             response.entities_general ?? initialDashboardData.entities_general,
           entities_period_created: response.entities_period_created ?? [],
@@ -112,6 +90,7 @@ export function useDashboard() {
     setPolicy,
     loading,
     fetchData,
-    policiesByCompany,
+    policies,
+    policiesByCompany: data.policies,
   };
 }

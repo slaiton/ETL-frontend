@@ -17,10 +17,18 @@ export interface CertificatesIndicatorByPeriod {
   customer_id: number | null;
 }
 
+export interface CertificatesIndicatorByPolicy {
+  policy_id: number;
+  external_code: string | null;
+  beneficiary_name: string | null;
+  issued: number;
+}
+
 export interface CertificatesResponse {
   invoices: CertificatesIndicator;
   general: CertificatesIndicator;
   period: CertificatesIndicatorByPeriod[];
+  policies: CertificatesIndicatorByPolicy[];
   entities_general: EntitiesGeneral;
   entities_period_created: EntitiesPeriod[];
   entities_period_signed: EntitiesPeriod[];

@@ -1,121 +1,97 @@
 import React, { useEffect, useRef, useState } from "react";
-import { layoutStyles } from "./layout.styles";
+import { Link } from "react-router-dom";
+import { ChevronDown, House, LogOut, Menu } from "lucide-react";
+import BrandLogo from "../../shared/brand/BrandLogo";
+import { useAuth } from "../../shared/context/AuthContext";
+import { getFullName, getInitials } from "../../shared/utils/userProfile";
 
-interface StoredUser {
-  id?: number;
-  name?: string;
-  email?: string;
+interface NavbarProps {
+  onMenuClick: () => void;
+  sidebarOpen?: boolean;
 }
 
-const Navbar: React.FC<{ onMenuClick: () => void }> = ({ onMenuClick }) => {
-  const [user, setUser] = useState<StoredUser | null>(null);
+const Navbar: React.FC<NavbarProps> = ({ onMenuClick, sidebarOpen = false }) => {
+  const { user, homePage } = useAuth();
   const [open, setOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
+  // Cerrar el menú de usuario con clic afuera o Escape
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-
-    if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch {
-        setUser({ name: storedUser });
-      }
-    }
-  }, []);
-
-  // cerrar dropdown al hacer click afuera
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
+    if (!open) return;
+    const onPointerDown = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
         setOpen(false);
       }
     };
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("mousedown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [open]);
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  const displayName = user?.name || user?.email || "Usuario";
+  const fullName = getFullName(user);
+  const initials = getInitials(user);
+  const roleName = user?.role_name;
 
   return (
-    <header style={layoutStyles.navbar}>
-      <button
-        onClick={onMenuClick}
-        style={{
-          padding: "8px 12px",
-          borderRadius: "6px",
-          border: "none",
-          fontSize: "20px",
-          cursor: "pointer",
-          background: "transparent",
-        }}
-        className="mobile-menu-btn"
-      >
-        ☰
-      </button>
+    <header className="topbar">
+      <div className="topbar__left">
+        <button
+          type="button"
+          className="icon-btn"
+          onClick={onMenuClick}
+          aria-label="Abrir menú"
+          aria-expanded={sidebarOpen}
+        >
+          <Menu size={22} />
+        </button>
+        <Link to={homePage} className="topbar__brand" aria-label="Ir al inicio">
+          <BrandLogo tone="onLight" height={36} />
+        </Link>
+      </div>
 
-      <div
-        ref={dropdownRef}
-        style={{ position: "relative" }}
-      >
-        <img
-          onClick={() => setOpen(!open)}
-          src={`https://ui-avatars.com/api/?name=${encodeURIComponent(
-            displayName
-          )}&background=1e3a8a&color=fff`}
-          alt="avatar"
-          style={{
-            width: "38px",
-            height: "38px",
-            borderRadius: "50%",
-            cursor: "pointer",
-          }}
-        />
+      <div ref={menuRef} className="user-menu">
+        <button
+          type="button"
+          className="user-chip"
+          onClick={() => setOpen((v) => !v)}
+          aria-haspopup="menu"
+          aria-expanded={open}
+          aria-label={`Menú de usuario: ${fullName}`}
+        >
+          <span className="avatar">{initials}</span>
+          <span className="user-chip__text">
+            <span className="user-chip__name">{fullName}</span>
+            {roleName && <span className="user-chip__role">{roleName}</span>}
+          </span>
+          <ChevronDown size={16} className="user-chip__chevron" />
+        </button>
 
         {open && (
-          <div
-            style={{
-              position: "absolute",
-              right: 0,
-              top: "48px",
-              background: "#fff",
-              boxShadow: "0 8px 20px rgba(0,0,0,0.15)",
-              borderRadius: "10px",
-              padding: "12px",
-              minWidth: "180px",
-              zIndex: 100,
-            }}
-          >
-            <div
-              style={{
-                fontWeight: 600,
-                marginBottom: "8px",
-                wordBreak: "break-word",
-              }}
-            >
-              {displayName}
+          <div className="user-dropdown" role="menu">
+            <div className="user-dropdown__header">
+              <span className="avatar avatar--lg">{initials}</span>
+              <div className="user-dropdown__identity">
+                <div className="user-dropdown__name">{fullName}</div>
+                {user?.email && user.email !== fullName && (
+                  <div className="user-dropdown__email">{user.email}</div>
+                )}
+                {roleName && <span className="role-badge">{roleName}</span>}
+              </div>
             </div>
-
-            <button
-              style={{
-                width: "100%",
-                padding: "8px",
-                border: "none",
-                background: "#f3f4f6",
-                borderRadius: "6px",
-                cursor: "pointer",
-              }}
-              onClick={() => {
-                localStorage.removeItem("user");
-                window.location.href = "/logout";
-              }}
-            >
-              Cerrar sesión
-            </button>
+            <div className="user-dropdown__actions">
+              <Link to="/home" className="menu-item" role="menuitem" onClick={() => setOpen(false)}>
+                <House size={16} /> Inicio
+              </Link>
+              <Link to="/logout" className="menu-item menu-item--danger" role="menuitem">
+                <LogOut size={16} /> Cerrar sesión
+              </Link>
+            </div>
           </div>
         )}
       </div>

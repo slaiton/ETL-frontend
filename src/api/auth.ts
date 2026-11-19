@@ -1,4 +1,5 @@
 import { axiosClient } from "../shared/api/axiosClient";
+import { USER_PROFILE_KEY, type UserProfile } from "../shared/utils/userProfile";
 
 interface LoginParams {
   user: string;
@@ -11,6 +12,7 @@ interface AuthResponse {
   role_id?: number;
   permissions?: string[];
   home_page?: string;
+  user?: UserProfile;
 }
 
 export const authenticateUser = async (
@@ -40,5 +42,6 @@ export const logout = () => {
   localStorage.removeItem("role_id");
   localStorage.removeItem("permissions");
   localStorage.removeItem("home_page");
+  localStorage.removeItem(USER_PROFILE_KEY);
   window.location.href = "/login";
 };
