@@ -1,4 +1,7 @@
 import { useEffect, useState } from "react";
+import { FileSearch, Search, X, Download, ChevronLeft, ChevronRight } from "lucide-react";
+import PageHeader from "../../../components/ui/PageHeader";
+import { C, ui } from "../../../shared/styles/ui";
 import type { Certificate } from "../../../models/certificates.model";
 import { useCertificates } from "../hooks/useCertificates";
 import { getPolicyOptions, type CertificateFilters, type PolicyOption } from "../../../api/certificates";
@@ -132,7 +135,12 @@ export default function Certificates() {
   };
 
   return (
-    <div style={st.container}>
+    <div className="app-page" style={st.container}>
+      <PageHeader
+        icon={<FileSearch size={20} />}
+        title="Consulta de certificados (básica)"
+        subtitle="Búsqueda rápida y descarga de certificados"
+      />
 
       {/* ── Panel de filtros ───────────────────────────── */}
       <div style={st.panel}>
@@ -205,13 +213,13 @@ export default function Certificates() {
             <Field label="Desde">
               <input
                 type="date" value={draft.start_date} onChange={set("start_date")}
-                style={{ ...st.input, colorScheme: "dark" as React.CSSProperties["colorScheme"] }}
+                style={st.input}
               />
             </Field>
             <Field label="Hasta">
               <input
                 type="date" value={draft.end_date} onChange={set("end_date")}
-                style={{ ...st.input, colorScheme: "dark" as React.CSSProperties["colorScheme"] }}
+                style={st.input}
               />
             </Field>
             <Field label="Facturación">
@@ -230,17 +238,17 @@ export default function Certificates() {
         {/* Acciones */}
         <div style={st.actions}>
           <button onClick={applySearch} disabled={loading} style={st.btnSearch}>
-            {loading ? "Buscando..." : "Buscar"}
+            {loading ? "Buscando..." : <><Search size={15} /> Buscar</>}
           </button>
           {hasFilters && (
-            <button onClick={clearAll} style={st.btnClear}>✕ Limpiar</button>
+            <button onClick={clearAll} style={st.btnClear}><X size={15} /> Limpiar</button>
           )}
           <button
             onClick={() => exportToExcel(data)}
             disabled={data.length === 0 || loading}
             style={st.btnExcel}
           >
-            ↓ Excel
+            <Download size={15} /> Excel
           </button>
         </div>
       </div>
@@ -300,9 +308,9 @@ export default function Certificates() {
       {/* ── Paginación ─────────────────────────────────── */}
       {totalPages > 1 && (
         <div style={st.pagination}>
-          <button disabled={page <= 1} onClick={() => changePage(page - 1)} style={st.pageBtn}>← Anterior</button>
+          <button disabled={page <= 1} onClick={() => changePage(page - 1)} style={st.pageBtn}><ChevronLeft size={15} /> Anterior</button>
           <span style={st.pageInfo}>Página {page} de {totalPages}</span>
-          <button disabled={page >= totalPages} onClick={() => changePage(page + 1)} style={st.pageBtn}>Siguiente →</button>
+          <button disabled={page >= totalPages} onClick={() => changePage(page + 1)} style={st.pageBtn}>Siguiente <ChevronRight size={15} /></button>
         </div>
       )}
     </div>
@@ -321,86 +329,43 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 /* ── Styles ──────────────────────────────────────────── */
 const st: Record<string, React.CSSProperties> = {
-  container: { padding: "20px", fontFamily: "Inter, Arial, sans-serif", color: "#e4e4e7" },
+  container: { ...ui.page },
 
   panel: {
-    background: "rgba(24,24,27,0.95)", border: "1px solid #2a2a33",
-    borderRadius: "14px", padding: "16px 20px", marginBottom: "16px",
-    display: "flex", flexDirection: "column", gap: "14px",
+    ...ui.card,
+    padding: "18px 20px", marginBottom: 16,
+    display: "flex", flexDirection: "column", gap: 16,
   },
-  section: { display: "flex", flexDirection: "column", gap: "8px" },
-  sectionLabel: {
-    fontSize: 11, fontWeight: 700, color: "#4B5563",
-    textTransform: "uppercase", letterSpacing: "0.08em",
-  },
-  row: { display: "flex", flexWrap: "wrap", gap: "10px" },
-  divider: { height: 1, background: "#2a2a33" },
+  section: { display: "flex", flexDirection: "column", gap: 10 },
+  sectionLabel: ui.sectionLabel,
+  row: { display: "flex", flexWrap: "wrap", gap: 12 },
+  divider: { height: 1, background: C.borderSoft },
 
-  field: { display: "flex", flexDirection: "column", gap: "4px", minWidth: 140, flex: 1 },
-  fieldLabel: { fontSize: 11, color: "#9CA3AF", fontWeight: 500 },
-  input: {
-    background: "#1e1e24", border: "1px solid #3f3f46", borderRadius: "8px",
-    color: "#e4e4e7", padding: "8px 10px", fontSize: 13, outline: "none",
-    width: "100%", boxSizing: "border-box",
-  },
+  field: { display: "flex", flexDirection: "column", gap: 6, minWidth: 150, flex: 1 },
+  fieldLabel: ui.label,
+  input: ui.input,
 
-  selectWrap: {
-    position: "relative", display: "flex", alignItems: "center",
-    background: "#1e1e24", border: "1px solid #3f3f46", borderRadius: "8px",
-  },
-  select: {
-    appearance: "none", background: "transparent", border: "none",
-    color: "#e4e4e7", padding: "8px 28px 8px 10px", fontSize: 13,
-    outline: "none", cursor: "pointer", width: "100%",
-  },
-  chevron: {
-    position: "absolute", right: 8, fontSize: 10, color: "#6B7280", pointerEvents: "none",
-  },
+  selectWrap: { position: "relative", display: "flex", alignItems: "center" },
+  select: { ...ui.input, appearance: "none", paddingRight: 32, cursor: "pointer" },
+  chevron: { display: "none" }, // la flecha la pone .app-page select
 
-  actions: { display: "flex", gap: "8px", alignItems: "center", justifyContent: "flex-end" },
-  btnSearch: {
-    background: "rgba(37,99,235,0.2)", color: "#60A5FA",
-    border: "1px solid rgba(37,99,235,0.35)", borderRadius: "8px",
-    padding: "8px 20px", cursor: "pointer", fontWeight: 600, fontSize: 13,
-  },
-  btnClear: {
-    background: "transparent", color: "#6B7280",
-    border: "1px solid #3f3f46", borderRadius: "8px",
-    padding: "8px 14px", cursor: "pointer", fontSize: 13,
-  },
-  btnExcel: {
-    background: "rgba(16,185,129,0.15)", color: "#34D399",
-    border: "1px solid rgba(16,185,129,0.35)", borderRadius: "8px",
-    padding: "8px 16px", cursor: "pointer", fontWeight: 600, fontSize: 13,
-  },
+  actions: { display: "flex", gap: 8, alignItems: "center", justifyContent: "flex-end", flexWrap: "wrap" },
+  btnSearch: { ...ui.btnPrimary, minWidth: 120 },
+  btnClear: ui.btnSecondary,
+  btnExcel: ui.btnSuccess,
 
-  badge: { color: "#6B7280", fontSize: 13, marginBottom: 10 },
+  badge: { color: C.muted, fontSize: 13, fontWeight: 500, margin: "0 0 10px" },
 
-  tableWrap: { overflowX: "auto", borderRadius: "12px", border: "1px solid #2a2a33" },
-  table: { width: "100%", borderCollapse: "collapse", minWidth: 900 },
-  thead: { background: "rgba(15,23,42,0.9)" },
-  th: {
-    padding: "12px 14px", textAlign: "center", fontSize: 12, fontWeight: 700,
-    color: "#6B7280", textTransform: "uppercase", letterSpacing: "0.05em",
-    borderBottom: "1px solid #2a2a33", whiteSpace: "nowrap",
-  },
-  tableRow: { backgroundColor: "#1e1e24" },
-  td: {
-    textAlign: "center", padding: "12px 14px", borderBottom: "1px solid #23232a",
-    fontSize: 13, whiteSpace: "nowrap",
-  },
-  noData: { textAlign: "center", padding: "32px", color: "#6B7280" },
-  btnAction: {
-    background: "rgba(37,99,235,0.15)", color: "#60A5FA",
-    border: "1px solid rgba(37,99,235,0.3)", borderRadius: "8px",
-    padding: "6px 12px", cursor: "pointer", fontWeight: 600, fontSize: 12,
-  },
+  tableWrap: ui.tableWrap,
+  table: { ...ui.table, minWidth: 900 },
+  thead: {},
+  th: { ...ui.th, textAlign: "center" },
+  tableRow: {},
+  td: { ...ui.td, textAlign: "center" },
+  noData: ui.noData,
+  btnAction: { ...ui.btnSoft, minHeight: 32, padding: "6px 12px", fontSize: 12 },
 
-  pagination: { display: "flex", justifyContent: "center", alignItems: "center", gap: "12px", marginTop: "20px" },
-  pageBtn: {
-    background: "rgba(30,41,59,0.9)", color: "#9CA3AF",
-    border: "1px solid #374151", borderRadius: "8px",
-    padding: "8px 16px", cursor: "pointer", fontWeight: 500, fontSize: 13,
-  },
-  pageInfo: { fontWeight: 500, color: "#9CA3AF", fontSize: 13 },
+  pagination: { display: "flex", justifyContent: "center", alignItems: "center", gap: 12, marginTop: 20 },
+  pageBtn: { ...ui.btnSecondary, minHeight: 36, padding: "7px 14px" },
+  pageInfo: { fontWeight: 600, color: C.muted, fontSize: 13 },
 };

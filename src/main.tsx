@@ -7,7 +7,9 @@ import { setupInterceptors } from "./shared/api/interceptor";
 import { setupAuthInterceptor } from "./shared/api/authInterceptor";
 import "./index.css";
 import App from "./App.tsx";
+import { initTheme } from "./shared/theme/theme";
 
+initTheme();
 setupAuthInterceptor();
 setupInterceptors();
 

@@ -8,6 +8,7 @@ import { useAuth } from "../../shared/context/AuthContext";
 import type { ModuleKey } from "../../models/roles.model";
 import BrandLogo from "../../shared/brand/BrandLogo";
 import { getFullName, getInitials } from "../../shared/utils/userProfile";
+import { useTheme } from "../../shared/theme/theme";
 
 interface NavItem {
   label: string;
@@ -35,6 +36,7 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ open = false, onClose }) => {
   const { hasAccess, user } = useAuth();
+  const { theme } = useTheme();
   const location = useLocation();
 
   const visible = NAV_ITEMS.filter((item) => item.module === null || hasAccess(item.module));
@@ -47,7 +49,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open = false, onClose }) => {
       inert={!open}
     >
       <div className="sidebar__header">
-        <BrandLogo tone="onLight" height={34} />
+        <BrandLogo tone={theme === "dark" ? "onDark" : "onLight"} height={34} />
         <button type="button" className="icon-btn" onClick={onClose} aria-label="Cerrar menú">
           <X size={20} />
         </button>

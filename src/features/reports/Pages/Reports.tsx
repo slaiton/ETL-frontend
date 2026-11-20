@@ -2,6 +2,11 @@ import { useEffect, useState } from "react";
 import { getPolicyOptions, type PolicyOption } from "../../../api/certificates";
 import {downloadReportExcel} from "../../../api/reports";
 import { useReports } from "../hooks/useReports";
+import {
+  TrendingUp, Search, Download, ChevronLeft, ChevronRight, AlertCircle, Inbox,
+} from "lucide-react";
+import PageHeader from "../../../components/ui/PageHeader";
+import { C, ui, pill } from "../../../shared/styles/ui";
 
 const PER_PAGE = 20;
 
@@ -124,34 +129,39 @@ const [downloadError, setDownloadError] = useState("");
   const hasFilters = startDate !== "" || endDate !== "" || policyId !== "";
   const canDownload = startDate !== "" && endDate !== "" && !downloading;
 
-  return (
-    <div style={st.container}>
+  const columns = data.length > 0 ? Object.keys(data[0]) : [];
 
-      <h1 style={st.title}>Reporte de Pólizas</h1>
+  return (
+    <div className="app-page" style={st.container}>
+      <PageHeader
+        icon={<TrendingUp size={20} />}
+        title="Reporte de pólizas"
+        subtitle="Consulta los certificados por rango de fechas y descárgalos en Excel"
+      />
 
       <div style={st.panel}>
         <div style={st.section}>
           <span style={st.sectionLabel}>Filtros</span>
           <div style={st.row}>
-            <Field label="Fecha Inicial">
+            <Field label="Fecha inicial">
               <input
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                style={{ ...st.input, colorScheme: "dark" as React.CSSProperties["colorScheme"] }}
+                style={st.input}
               />
             </Field>
 
-            <Field label="Fecha Final">
+            <Field label="Fecha final">
               <input
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                style={{ ...st.input, colorScheme: "dark" as React.CSSProperties["colorScheme"] }}
+                style={st.input}
               />
             </Field>
 
-            <Field label="Empresa">
+            <Field label="Empresa" wide>
               <div style={st.selectWrap}>
                 <select
                   value={policyId}
@@ -171,73 +181,83 @@ const [downloadError, setDownloadError] = useState("");
           </div>
         </div>
 
-        <div style={st.actions}>
-          <button onClick={handleSearch} style={st.btnSearch}>
-            Consultar
-          </button>
-          <button
-            onClick={handleDownload}
-            disabled={!canDownload}
-            style={{
-              ...st.btnExcel,
-              opacity: canDownload ? 1 : 0.5,
-              cursor: canDownload ? "pointer" : "not-allowed",
-            }}
-          >
-            {downloading ? "Generando Excel..." : "Descargar Excel"}
-          </button>
+        <div style={st.footer}>
+          <span style={st.hint}>
+            La descarga en Excel requiere ambas fechas; máximo dos meses por descarga.
+          </span>
+          <div style={st.actions}>
+            <button onClick={handleSearch} disabled={loading} style={st.btnSearch}>
+              <Search size={15} /> {loading ? "Consultando..." : "Consultar"}
+            </button>
+            <button
+              onClick={handleDownload}
+              disabled={!canDownload}
+              style={st.btnExcel}
+              title={canDownload ? "Descargar el reporte en Excel" : "Selecciona fecha inicial y final"}
+            >
+              <Download size={15} /> {downloading ? "Generando Excel..." : "Descargar Excel"}
+            </button>
+          </div>
         </div>
-          {downloadError && (
-            <div style={st.downloadError}>
-          {downloadError}
-    </div>
-  )}
+
+        {downloadError && (
+          <div style={st.downloadError} role="alert">
+            <AlertCircle size={16} style={{ flexShrink: 0 }} />
+            <span>{downloadError}</span>
+          </div>
+        )}
       </div>
 
-      {loading && <p style={st.badge}>Cargando reporte...</p>}
-
-      {!loading && (
-        <>
-          <p style={st.badge}>
-            {hasFilters
-              ? `${total} registro${total !== 1 ? "s" : ""} encontrado${total !== 1 ? "s" : ""}`
-              : `Total registros: ${total}`}
+      {loading ? (
+        <div style={st.emptyState}>
+          <span style={st.spinner} />
+          <p style={st.emptyTitle}>Cargando reporte...</p>
+        </div>
+      ) : data.length === 0 ? (
+        <div style={st.emptyState}>
+          <span style={st.emptyIcon}><Inbox size={22} /></span>
+          <p style={st.emptyTitle}>
+            {hasFilters ? "No hay información para estos filtros" : "Aún no hay resultados"}
           </p>
+          <p style={st.emptyText}>
+            {hasFilters
+              ? "Prueba con otro rango de fechas o con otra empresa."
+              : "Elige un rango de fechas y presiona Consultar."}
+          </p>
+        </div>
+      ) : (
+        <>
+          <div style={st.resultBar}>
+            <span style={pill("primary")}>
+              {total} registro{total !== 1 ? "s" : ""}
+            </span>
+            {totalPages > 1 && <span style={st.badge}>Página {page} de {totalPages}</span>}
+          </div>
 
           <div style={st.tableWrap}>
             <table style={st.table}>
               <thead>
                 <tr style={st.thead}>
-                  {data.length > 0 &&
-                    Object.keys(data[0]).map((key) => (
-                      <th key={key} style={st.th}>
-                        {key}
-                      </th>
-                    ))}
+                  {columns.map((key) => (
+                    <th key={key} style={st.th}>
+                      {key}
+                    </th>
+                  ))}
                 </tr>
               </thead>
 
               <tbody>
-                {data.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan={Object.keys(data[0] ?? {}).length || 1}
-                      style={st.noData}
-                    >
-                      No hay información
-                    </td>
+                {data.map((item: any, index: number) => (
+                  <tr key={index} style={st.tableRow}>
+                    {columns.map((key) => (
+                      <td key={key} style={st.td}>
+                        {item[key] !== null && item[key] !== undefined && item[key] !== ""
+                          ? String(item[key])
+                          : <span style={{ color: C.faint }}>—</span>}
+                      </td>
+                    ))}
                   </tr>
-                ) : (
-                  data.map((item: any, index: number) => (
-                    <tr key={index} style={st.tableRow}>
-                      {Object.keys(item).map((key) => (
-                        <td key={key} style={st.td}>
-                          {item[key] !== null ? String(item[key]) : ""}
-                        </td>
-                      ))}
-                    </tr>
-                  ))
-                )}
+                ))}
               </tbody>
             </table>
           </div>
@@ -249,7 +269,7 @@ const [downloadError, setDownloadError] = useState("");
                 disabled={page === 1}
                 style={st.pageBtn}
               >
-                ← Anterior
+                <ChevronLeft size={15} /> Anterior
               </button>
 
               <span style={st.pageInfo}>
@@ -261,7 +281,7 @@ const [downloadError, setDownloadError] = useState("");
                 disabled={page === totalPages}
                 style={st.pageBtn}
               >
-                Siguiente →
+                Siguiente <ChevronRight size={15} />
               </button>
             </div>
           )}
@@ -271,9 +291,9 @@ const [downloadError, setDownloadError] = useState("");
   );
 };
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({ label, wide, children }: { label: string; wide?: boolean; children: React.ReactNode }) {
   return (
-    <div style={st.field}>
+    <div style={{ ...st.field, ...(wide ? { flex: 2, minWidth: 260 } : {}) }}>
       <label style={st.fieldLabel}>{label}</label>
       {children}
     </div>
@@ -281,86 +301,71 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 const st: Record<string, React.CSSProperties> = {
-  container: { padding: "20px", fontFamily: "Inter, Arial, sans-serif", color: "#e4e4e7" },
+  container: { ...ui.page },
 
-  title: { fontSize: 24, fontWeight: 700, marginBottom: 20 },
+  title: { ...ui.title, marginBottom: 20 },
 
   panel: {
-    background: "rgba(24,24,27,0.95)", border: "1px solid #2a2a33",
-    borderRadius: "14px", padding: "16px 20px", marginBottom: "16px",
-    display: "flex", flexDirection: "column", gap: "14px",
+    ...ui.card,
+    padding: "18px 20px", marginBottom: 16,
+    display: "flex", flexDirection: "column", gap: 16,
   },
-  section: { display: "flex", flexDirection: "column", gap: "8px" },
-  sectionLabel: {
-    fontSize: 11, fontWeight: 700, color: "#4B5563",
-    textTransform: "uppercase", letterSpacing: "0.08em",
-  },
-  row: { display: "flex", flexWrap: "wrap", gap: "10px" },
+  section: { display: "flex", flexDirection: "column", gap: 10 },
+  sectionLabel: ui.sectionLabel,
+  row: { display: "flex", flexWrap: "wrap", gap: 12 },
 
-  field: { display: "flex", flexDirection: "column", gap: "4px", minWidth: 200, flex: 1 },
-  fieldLabel: { fontSize: 11, color: "#9CA3AF", fontWeight: 500 },
-  input: {
-    background: "#1e1e24", border: "1px solid #3f3f46", borderRadius: "8px",
-    color: "#e4e4e7", padding: "8px 10px", fontSize: 13, outline: "none",
-    width: "100%", boxSizing: "border-box",
-  },
+  field: { display: "flex", flexDirection: "column", gap: 6, minWidth: 200, flex: 1 },
+  fieldLabel: ui.label,
+  input: ui.input,
 
-  selectWrap: {
-    position: "relative", display: "flex", alignItems: "center",
-    background: "#1e1e24", border: "1px solid #3f3f46", borderRadius: "8px",
-  },
-  select: {
-    appearance: "none", background: "transparent", border: "none",
-    color: "#e4e4e7", padding: "8px 28px 8px 10px", fontSize: 13,
-    outline: "none", cursor: "pointer", width: "100%",
-  },
-  chevron: {
-    position: "absolute", right: 8, fontSize: 10, color: "#6B7280", pointerEvents: "none",
-  },
+  selectWrap: { position: "relative", display: "flex", alignItems: "center" },
+  select: { ...ui.input, appearance: "none", paddingRight: 32, cursor: "pointer" },
+  chevron: { display: "none" }, // la flecha la pone .app-page select
 
-  actions: { display: "flex", gap: "8px", alignItems: "center", justifyContent: "flex-end" },
-  btnSearch: {
-    background: "rgba(37,99,235,0.2)", color: "#60A5FA",
-    border: "1px solid rgba(37,99,235,0.35)", borderRadius: "8px",
-    padding: "8px 20px", cursor: "pointer", fontWeight: 600, fontSize: 13,
+  footer: {
+    display: "flex", alignItems: "center", justifyContent: "space-between",
+    gap: 12, flexWrap: "wrap", paddingTop: 14, borderTop: `1px solid ${C.borderSoft}`,
   },
-  btnExcel: {
-    background: "rgba(16,185,129,0.15)", color: "#34D399",
-    border: "1px solid rgba(16,185,129,0.35)", borderRadius: "8px",
-    padding: "8px 16px", cursor: "pointer", fontWeight: 600, fontSize: 13,
+  hint: { fontSize: 12, color: C.muted },
+  actions: { display: "flex", gap: 8, alignItems: "center", justifyContent: "flex-end", flexWrap: "wrap" },
+  btnSearch: ui.btnPrimary,
+  btnExcel: ui.btnSuccess,
+  btnCancel: ui.btnDanger,
+
+  badge: { color: C.muted, fontSize: 13, fontWeight: 500 },
+  resultBar: { display: "flex", alignItems: "center", gap: 10, marginBottom: 12, flexWrap: "wrap" },
+
+  emptyState: {
+    ...ui.card,
+    padding: "48px 24px",
+    display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
+    textAlign: "center",
   },
-  btnCancel: {
-    background: "rgba(239,68,68,0.15)", color: "#F87171",
-    border: "1px solid rgba(239,68,68,0.35)", borderRadius: "8px",
-    padding: "8px 16px", cursor: "pointer", fontWeight: 600, fontSize: 13,
+  emptyIcon: { ...ui.iconTile, width: 48, height: 48, borderRadius: 14, marginBottom: 6 },
+  emptyTitle: { margin: 0, fontSize: 15, fontWeight: 700, color: C.ink },
+  emptyText: { margin: 0, fontSize: 13, color: C.muted },
+  spinner: {
+    width: 22, height: 22, borderRadius: "50%", marginBottom: 6,
+    border: `3px solid ${C.primaryTint2}`, borderTopColor: C.primary,
+    animation: "spin 0.8s linear infinite",
   },
 
-  badge: { color: "#6B7280", fontSize: 13, marginBottom: 10 },
+  tableWrap: ui.tableWrap,
+  table: { ...ui.table, minWidth: 900 },
+  thead: {},
+  th: { ...ui.th, textAlign: "center" },
+  tableRow: {},
+  td: { ...ui.td, textAlign: "center" },
+  noData: ui.noData,
 
-  tableWrap: { overflowX: "auto", borderRadius: "12px", border: "1px solid #2a2a33" },
-  table: { width: "100%", borderCollapse: "collapse", minWidth: 900 },
-  thead: { background: "rgba(15,23,42,0.9)" },
-  th: {
-    padding: "12px 14px", textAlign: "center", fontSize: 12, fontWeight: 700,
-    color: "#6B7280", textTransform: "uppercase", letterSpacing: "0.05em",
-    borderBottom: "1px solid #2a2a33", whiteSpace: "nowrap",
-  },
-  tableRow: { backgroundColor: "#1e1e24" },
-  td: {
-    textAlign: "center", padding: "12px 14px", borderBottom: "1px solid #23232a",
-    fontSize: 13, whiteSpace: "nowrap",
-  },
-  noData: { textAlign: "center", padding: "32px", color: "#6B7280" },
-
-  pagination: { display: "flex", justifyContent: "center", alignItems: "center", gap: "12px", marginTop: "20px" },
-  pageBtn: {
-    background: "rgba(30,41,59,0.9)", color: "#9CA3AF",
-    border: "1px solid #374151", borderRadius: "8px",
-    padding: "8px 16px", cursor: "pointer", fontWeight: 500, fontSize: 13,
-  },
-  pageInfo: { fontWeight: 500, color: "#9CA3AF", fontSize: 13 },
+  pagination: { display: "flex", justifyContent: "center", alignItems: "center", gap: 12, marginTop: 20 },
+  pageBtn: { ...ui.btnSecondary, minHeight: 36, padding: "7px 14px" },
+  pageInfo: { fontWeight: 600, color: C.muted, fontSize: 13 },
   downloadError: {
-    color: "#F87171", fontSize: 13, marginTop: 10, textAlign: "center",
+    display: "flex", alignItems: "flex-start", gap: 8,
+    padding: "10px 14px", borderRadius: 10,
+    background: C.dangerTint, border: `1px solid ${C.dangerBorder}`,
+    color: C.danger, fontSize: 13, fontWeight: 500,
   },
 };
 

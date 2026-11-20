@@ -6,7 +6,8 @@ export const layoutStyles = {
     flexDirection: "column",
     width: "100%",
     minHeight: "100vh",
-    background: "#111827",
+    background: "var(--c-bg)",
+    transition: "background-color .2s",
   } as CSSProperties,
 
 
@@ -33,16 +34,16 @@ export const layoutStyles = {
 
   footer: {
     marginTop: "auto",
-    padding: "15px 20px",
-    background: "#1f2937",
-    borderTop: "1px solid rgba(255, 255, 255, 0.1)",
+    padding: "14px 20px",
+    background: "var(--c-surface)",
+    borderTop: "1px solid var(--c-border)",
     textAlign: "center",
   } as CSSProperties,
 
   footerText: {
     margin: 0,
-    fontSize: "0.9rem",
-    color: "#9ca3af",
+    fontSize: "0.82rem",
+    color: "var(--c-faint)",
   },
 
   sidebarLogoContainer: {

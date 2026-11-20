@@ -1,5 +1,7 @@
 /* ── Login ──────────────────────────────────────────────────────────── */
 .login {
+  /* El login conserva la marca en claro, sin importar el tema */
+  color-scheme: light;
   min-height: 100dvh;
   display: grid;
   grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);

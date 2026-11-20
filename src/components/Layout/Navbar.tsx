@@ -1,9 +1,10 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { Building2, ChevronDown, House, LogOut, Menu } from "lucide-react";
+import { Building2, ChevronDown, House, LogOut, Menu, Moon, Sun } from "lucide-react";
 import BrandLogo from "../../shared/brand/BrandLogo";
 import { useAuth } from "../../shared/context/AuthContext";
 import { getFullName, getInitials } from "../../shared/utils/userProfile";
+import { useTheme } from "../../shared/theme/theme";
 
 interface NavbarProps {
   onMenuClick: () => void;
@@ -12,6 +13,8 @@ interface NavbarProps {
 
 const Navbar: React.FC<NavbarProps> = ({ onMenuClick, sidebarOpen = false }) => {
   const { user, homePage } = useAuth();
+  const { theme, toggleTheme } = useTheme();
+  const isDark = theme === "dark";
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -52,9 +55,21 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, sidebarOpen = false }) => 
           <Menu size={22} />
         </button>
         <Link to={homePage} className="topbar__brand" aria-label="Ir al inicio">
-          <BrandLogo tone="onLight" height={36} />
+          <BrandLogo tone={isDark ? "onDark" : "onLight"} height={36} />
         </Link>
       </div>
+
+      <div className="topbar__right">
+      <button
+        type="button"
+        className="icon-btn theme-toggle"
+        onClick={toggleTheme}
+        aria-label={isDark ? "Cambiar a tema claro" : "Cambiar a tema oscuro"}
+        title={isDark ? "Tema claro" : "Tema oscuro"}
+        aria-pressed={isDark}
+      >
+        {isDark ? <Sun size={20} /> : <Moon size={20} />}
+      </button>
 
       <div ref={menuRef} className="user-menu">
         <button
@@ -106,6 +121,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, sidebarOpen = false }) => 
             </div>
           </div>
         )}
+      </div>
       </div>
     </header>
   );

@@ -5,6 +5,7 @@ import { createUser, updateUser, deleteUser, getClients } from "../../../api/use
 import { getRoles } from "../../../api/roles";
 import type { User, CreateUserPayload, UpdateUserPayload, ClientOption } from "../../../models/users.model";
 import type { Role } from "../../../models/roles.model";
+import { C, ui, pill } from "../../../shared/styles/ui";
 
 /* ── Form state ──────────────────────────────────── */
 const emptyForm = {
@@ -23,7 +24,7 @@ function Initials({ name }: { name: string }) {
   return (
     <div style={{
       width: 34, height: 34, borderRadius: "50%", flexShrink: 0,
-      background: "linear-gradient(135deg,#3B82F6,#8B5CF6)",
+      background: C.gradient,
       display: "flex", alignItems: "center", justifyContent: "center",
       fontSize: 12, fontWeight: 700, color: "#fff", textTransform: "uppercase",
     }}>
@@ -58,8 +59,8 @@ function UserModal({
 
         <div style={mo.header}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <UsersIcon size={18} color="#60A5FA" />
-            <span style={{ fontWeight: 700, fontSize: 16, color: "#F9FAFB" }}>
+            <UsersIcon size={18} color={C.primaryStrong} />
+            <span style={{ fontWeight: 700, fontSize: 16, color: C.ink }}>
               {mode === "create" ? "Nuevo usuario" : "Editar usuario"}
             </span>
           </div>
@@ -151,16 +152,16 @@ function DeleteConfirm({ user, onConfirm, onCancel, deleting }: DeleteConfirmPro
     <div style={mo.overlay} onClick={onCancel}>
       <div style={{ ...mo.card, maxWidth: 400 }} onClick={(e) => e.stopPropagation()}>
         <div style={mo.header}>
-          <span style={{ fontWeight: 700, color: "#F87171", fontSize: 15 }}>Eliminar usuario</span>
+          <span style={{ fontWeight: 700, color: C.danger, fontSize: 15 }}>Eliminar usuario</span>
           <button onClick={onCancel} style={mo.closeBtn}><X size={16} /></button>
         </div>
-        <p style={{ color: "#9CA3AF", fontSize: 14, padding: "16px 0 8px" }}>
-          ¿Estás seguro de eliminar a <strong style={{ color: "#E5E7EB" }}>{user.first_name} {user.last_name}</strong>?
+        <p style={{ color: C.muted, fontSize: 14, padding: "8px 0 20px", lineHeight: 1.5 }}>
+          ¿Estás seguro de eliminar a <strong style={{ color: C.ink }}>{user.first_name} {user.last_name}</strong>?
           Esta acción no se puede deshacer.
         </p>
         <div style={mo.actions}>
           <button onClick={onCancel} style={mo.btnCancel} disabled={deleting}>Cancelar</button>
-          <button onClick={onConfirm} style={{ ...mo.btnSave, background: "#DC2626" }} disabled={deleting}>
+          <button onClick={onConfirm} style={{ ...mo.btnSave, background: C.dangerSolid, boxShadow: "0 10px 20px -12px rgba(220,38,38,0.9)" }} disabled={deleting}>
             <Trash2 size={14} style={{ marginRight: 6 }} />
             {deleting ? "Eliminando..." : "Sí, eliminar"}
           </button>
@@ -289,12 +290,12 @@ export default function UsersPage() {
     : users;
 
   return (
-    <div style={st.container}>
+    <div className="app-page" style={st.container}>
 
       {/* ── Header ───────────────────────────────────── */}
       <div style={st.pageHeader}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={st.iconWrap}><UsersIcon size={20} color="#60A5FA" /></div>
+          <div style={st.iconWrap}><UsersIcon size={20} /></div>
           <div>
             <h1 style={st.title}>Usuarios</h1>
             <p style={st.subtitle}>{users.length} usuario{users.length !== 1 ? "s" : ""} registrado{users.length !== 1 ? "s" : ""}</p>
@@ -347,10 +348,10 @@ export default function UsersPage() {
                     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                       <Initials name={`${user.first_name} ${user.last_name}`} />
                       <div>
-                        <div style={{ fontWeight: 600, color: "#E5E7EB", fontSize: 14 }}>
+                        <div style={{ fontWeight: 600, color: C.ink, fontSize: 14 }}>
                           {user.first_name} {user.last_name}
                         </div>
-                        <div style={{ fontSize: 11, color: "#6B7280" }}>ID #{user.id}</div>
+                        <div style={{ fontSize: 11, color: C.faint }}>ID #{user.id}</div>
                       </div>
                     </div>
                   </td>
@@ -364,11 +365,11 @@ export default function UsersPage() {
                   <td style={st.td}>
                     {user.client_name ? (
                       <span style={st.clientCell}>
-                        <Building2 size={14} color="#38BDF8" style={{ flexShrink: 0 }} />
+                        <Building2 size={14} color={C.primaryStrong} style={{ flexShrink: 0 }} />
                         {user.client_name}
                       </span>
                     ) : (
-                      <span style={{ color: "#6B7280" }}>Interno</span>
+                      <span style={pill("neutral")}>Interno</span>
                     )}
                   </td>
                   <td style={{ ...st.td, textAlign: "center" }}>
@@ -425,139 +426,72 @@ export default function UsersPage() {
 
 /* ── Page styles ─────────────────────────────────── */
 const st: Record<string, React.CSSProperties> = {
-  container: {
-    padding: "24px", fontFamily: "Inter, Arial, sans-serif",
-    color: "#e4e4e7", minHeight: "100vh",
-  },
+  container: { ...ui.page },
   pageHeader: {
     display: "flex", alignItems: "center", justifyContent: "space-between",
     marginBottom: 20, flexWrap: "wrap", gap: 12,
   },
-  iconWrap: {
-    width: 40, height: 40, borderRadius: 10, flexShrink: 0,
-    background: "rgba(59,130,246,0.12)", border: "1px solid rgba(59,130,246,0.2)",
-    display: "flex", alignItems: "center", justifyContent: "center",
-  },
-  title: { fontSize: 22, fontWeight: 800, color: "#F9FAFB", margin: 0 },
-  subtitle: { fontSize: 13, color: "#6B7280", margin: "2px 0 0" },
-  btnNew: {
-    display: "flex", alignItems: "center",
-    background: "#2563EB", color: "#fff", border: "none",
-    borderRadius: 10, padding: "10px 18px", cursor: "pointer",
-    fontWeight: 600, fontSize: 14, boxShadow: "0 4px 14px rgba(37,99,235,.35)",
-    transition: "all .2s",
-  },
+  iconWrap: ui.iconTile,
+  title: ui.title,
+  subtitle: ui.subtitle,
+  btnNew: ui.btnPrimary,
   searchBar: {
     display: "flex", alignItems: "center",
-    background: "rgba(30,30,36,0.95)", border: "1px solid #2d2d35",
-    borderRadius: 10, padding: "0 12px", marginBottom: 16,
+    background: C.surface, border: `1px solid ${C.border}`,
+    borderRadius: 12, padding: "0 12px", marginBottom: 16,
     maxWidth: 400,
   },
   searchInput: {
-    background: "transparent", border: "none", color: "#E5E7EB",
+    background: "transparent", border: "none", color: C.ink,
     padding: "11px 8px", outline: "none", fontSize: 14, flex: 1,
+    boxShadow: "none",
   },
   searchClear: {
-    background: "none", border: "none", color: "#6B7280",
+    background: "none", border: "none", color: C.muted,
     cursor: "pointer", fontSize: 13, padding: "4px 0",
   },
-  tableWrapper: {
-    overflowX: "auto", borderRadius: 12,
-    border: "1px solid rgba(255,255,255,0.06)",
-    background: "rgba(15,23,42,0.7)",
-  },
-  table: { width: "100%", borderCollapse: "collapse", minWidth: 780 },
-  thead: { background: "rgba(15,23,42,0.9)" },
-  th: {
-    padding: "13px 16px", textAlign: "left",
-    fontSize: 11, fontWeight: 700, color: "#6B7280",
-    textTransform: "uppercase", letterSpacing: "0.06em",
-    borderBottom: "1px solid rgba(255,255,255,0.06)",
-    whiteSpace: "nowrap",
-  },
-  tr: {
-    borderBottom: "1px solid rgba(255,255,255,0.04)",
-    transition: "background .15s",
-  },
-  td: {
-    padding: "14px 16px", fontSize: 13, color: "#D1D5DB", verticalAlign: "middle",
-  },
-  noData: {
-    textAlign: "center", padding: "40px", color: "#6B7280", fontSize: 14,
-  },
-  roleBadge: {
-    display: "inline-block",
-    background: "rgba(99,102,241,0.12)", color: "#A5B4FC",
-    border: "1px solid rgba(99,102,241,0.25)",
-    borderRadius: 999, padding: "3px 10px", fontSize: 12, fontWeight: 600,
-  },
+  tableWrapper: ui.tableWrap,
+  table: { ...ui.table, minWidth: 780 },
+  thead: {},
+  th: ui.th,
+  tr: {},
+  td: ui.td,
+  noData: ui.noData,
+  roleBadge: pill("primary"),
   clientCell: {
     display: "inline-flex", alignItems: "center", gap: 6,
-    color: "#E5E7EB", fontWeight: 500,
+    color: C.ink, fontWeight: 500,
   },
-  btnEdit: {
-    background: "rgba(37,99,235,0.12)", color: "#60A5FA",
-    border: "1px solid rgba(37,99,235,0.25)", borderRadius: 8,
-    padding: "7px 10px", cursor: "pointer", display: "flex",
-    alignItems: "center", transition: "all .2s",
-  },
-  btnDelete: {
-    background: "rgba(220,38,38,0.1)", color: "#F87171",
-    border: "1px solid rgba(220,38,38,0.2)", borderRadius: 8,
-    padding: "7px 10px", cursor: "pointer", display: "flex",
-    alignItems: "center", transition: "all .2s",
-  },
+  btnEdit: { ...ui.btnIcon, ...pill("primary"), padding: 0, width: 34, height: 34, borderRadius: 9, justifyContent: "center", cursor: "pointer" },
+  btnDelete: { ...ui.btnIcon, ...pill("danger"), padding: 0, width: 34, height: 34, borderRadius: 9, justifyContent: "center", cursor: "pointer" },
 };
 
 /* ── Modal styles ────────────────────────────────── */
 const mo: Record<string, React.CSSProperties> = {
-  overlay: {
-    position: "fixed", inset: 0, zIndex: 200,
-    background: "rgba(0,0,0,0.65)", backdropFilter: "blur(4px)",
-    display: "flex", alignItems: "center", justifyContent: "center",
-    padding: 16,
-  },
-  card: {
-    background: "#0F172A", border: "1px solid rgba(255,255,255,0.08)",
-    borderRadius: 18, padding: "24px", width: "100%", maxWidth: 560,
-    boxShadow: "0 24px 60px rgba(0,0,0,0.6)",
-  },
+  overlay: ui.modalOverlay,
+  card: { ...ui.modalCard, maxWidth: 560 },
   header: {
     display: "flex", alignItems: "center", justifyContent: "space-between",
     marginBottom: 20,
   },
   closeBtn: {
-    background: "rgba(255,255,255,0.05)", border: "none", color: "#9CA3AF",
-    borderRadius: 8, padding: "6px 8px", cursor: "pointer",
-    display: "flex", alignItems: "center",
+    ...ui.btnIcon, width: 32, height: 32, minHeight: 32,
+    background: C.surfaceAlt, border: `1px solid ${C.border}`, color: C.muted,
   },
   errorBanner: {
-    background: "rgba(220,38,38,0.12)", border: "1px solid rgba(220,38,38,0.3)",
-    borderRadius: 8, padding: "10px 14px", color: "#FCA5A5",
+    background: C.dangerTint, border: `1px solid ${C.dangerBorder}`,
+    borderRadius: 10, padding: "10px 14px", color: C.danger,
     fontSize: 13, marginBottom: 16,
   },
   grid: {
-    display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px",
+    display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "14px",
     marginBottom: 24,
   },
   fieldGroup: { display: "flex", flexDirection: "column", gap: 6 },
-  fieldLabel: { fontSize: 12, fontWeight: 600, color: "#6B7280", letterSpacing: "0.04em" },
-  fieldHint: { fontSize: 11, color: "#6B7280" },
-  fieldInput: {
-    background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)",
-    borderRadius: 8, padding: "10px 12px", color: "#E5E7EB",
-    fontSize: 13, outline: "none", colorScheme: "dark",
-    appearance: "none",
-  },
+  fieldLabel: ui.label,
+  fieldHint: { fontSize: 11, color: C.faint },
+  fieldInput: ui.input,
   actions: { display: "flex", justifyContent: "flex-end", gap: 10 },
-  btnCancel: {
-    background: "rgba(255,255,255,0.05)", color: "#9CA3AF",
-    border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8,
-    padding: "10px 18px", cursor: "pointer", fontWeight: 500, fontSize: 13,
-  },
-  btnSave: {
-    background: "#2563EB", color: "#fff", border: "none", borderRadius: 8,
-    padding: "10px 20px", cursor: "pointer", fontWeight: 600, fontSize: 13,
-    display: "flex", alignItems: "center",
-  },
+  btnCancel: ui.btnSecondary,
+  btnSave: ui.btnPrimary,
 };

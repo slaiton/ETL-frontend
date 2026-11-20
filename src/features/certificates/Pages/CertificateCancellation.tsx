@@ -1,4 +1,7 @@
 import { useState } from "react";
+import { FileX, Search, Ban } from "lucide-react";
+import PageHeader from "../../../components/ui/PageHeader";
+import { C, ui, pill } from "../../../shared/styles/ui";
 import { useCertificateCancellation } from "../hooks/useCertificateCancellation";
 
 export default function CertificateCancellation() {
@@ -63,44 +66,17 @@ export default function CertificateCancellation() {
   };
 
   /* ── Estado de validación ──────────────────────────── */
+  const STATUS: Record<string, { label: string; tone: Parameters<typeof pill>[0] }> = {
+    READY: { label: "Disponible", tone: "success" },
+    ALREADY_DECLINED: { label: "Ya anulado", tone: "danger" },
+    NOT_FOUND: { label: "No encontrado", tone: "warning" },
+  };
+
   const renderStatus = (status: string) => {
-    const styles: Record<string, React.CSSProperties> = {
-      READY: {
-        background: "rgba(16,185,129,0.15)",
-        color: "#34D399",
-        border: "1px solid rgba(16,185,129,0.35)",
-      },
-
-      ALREADY_DECLINED: {
-        background: "rgba(239,68,68,0.15)",
-        color: "#F87171",
-        border: "1px solid rgba(239,68,68,0.35)",
-      },
-
-      NOT_FOUND: {
-        background: "rgba(249,115,22,0.15)",
-        color: "#FB923C",
-        border: "1px solid rgba(249,115,22,0.35)",
-      },
-    };
-
+    const meta = STATUS[status] ?? { label: status, tone: "neutral" as const };
     return (
-      <span
-        style={{
-          display: "inline-block",
-          padding: "5px 10px",
-          borderRadius: 6,
-          fontSize: 11,
-          fontWeight: 700,
-          letterSpacing: "0.03em",
-          ...(styles[status] || {
-            background: "rgba(107,114,128,0.15)",
-            color: "#9CA3AF",
-            border: "1px solid rgba(107,114,128,0.3)",
-          }),
-        }}
-      >
-        {status}
+      <span style={pill(meta.tone)} title={status}>
+        {meta.label}
       </span>
     );
   };
@@ -129,7 +105,12 @@ export default function CertificateCancellation() {
   ).length;
 
   return (
-    <div style={st.container}>
+    <div className="app-page" style={st.container}>
+      <PageHeader
+        icon={<FileX size={20} />}
+        title="Anulación de certificados"
+        subtitle="Valida uno o varios waybills y anula los certificados disponibles"
+      />
 
       {/* ── Panel principal ───────────────────────────── */}
       <div style={st.panel}>
@@ -137,7 +118,7 @@ export default function CertificateCancellation() {
         {/* Sección búsqueda */}
         <div style={st.section}>
           <span style={st.sectionLabel}>
-            Anulación de certificados
+            Consulta por waybill
           </span>
 
           <div style={st.description}>
@@ -175,7 +156,7 @@ export default function CertificateCancellation() {
           >
             {loadingSearch
               ? "Consultando..."
-              : "Buscar certificados"}
+              : <><Search size={15} /> Buscar certificados</>}
           </button>
 
           <button
@@ -193,7 +174,7 @@ export default function CertificateCancellation() {
           >
             {loadingProcess
               ? "Procesando..."
-              : "Procesar anulación"}
+              : <><Ban size={15} /> Procesar anulación</>}
           </button>
 
         </div>
@@ -323,202 +304,61 @@ export default function CertificateCancellation() {
 /* ── Styles ──────────────────────────────────────────── */
 
 const st: Record<string, React.CSSProperties> = {
-  container: {
-    padding: "20px",
-    fontFamily: "Inter, Arial, sans-serif",
-    color: "#e4e4e7",
-  },
-
-  /* Panel */
+  container: { ...ui.page },
 
   panel: {
-    background: "rgba(24,24,27,0.95)",
-    border: "1px solid #2a2a33",
-    borderRadius: "14px",
-    padding: "16px 20px",
-    marginBottom: "16px",
+    ...ui.card,
+    padding: "18px 20px",
+    marginBottom: 16,
     display: "flex",
     flexDirection: "column",
-    gap: "14px",
+    gap: 16,
   },
+  section: { display: "flex", flexDirection: "column", gap: 10 },
+  sectionLabel: ui.sectionLabel,
+  description: { fontSize: 13, color: C.muted, lineHeight: 1.5 },
+  divider: { height: 1, background: C.borderSoft },
 
-  section: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "10px",
-  },
-
-  sectionLabel: {
-    fontSize: 11,
-    fontWeight: 700,
-    color: "#4B5563",
-    textTransform: "uppercase",
-    letterSpacing: "0.08em",
-  },
-
-  description: {
-    fontSize: 13,
-    color: "#9CA3AF",
-    lineHeight: 1.5,
-  },
-
-  divider: {
-    height: 1,
-    background: "#2a2a33",
-  },
-
-  /* Field */
-
-  field: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "5px",
-    width: "100%",
-  },
-
-  fieldLabel: {
-    fontSize: 11,
-    color: "#9CA3AF",
-    fontWeight: 500,
-  },
-
+  field: { display: "flex", flexDirection: "column", gap: 6, width: "100%" },
+  fieldLabel: ui.label,
   textarea: {
-    background: "#1e1e24",
-    border: "1px solid #3f3f46",
-    borderRadius: "8px",
-    color: "#e4e4e7",
+    ...ui.input,
     padding: "10px 12px",
-    fontSize: 13,
-    outline: "none",
-    width: "100%",
-    boxSizing: "border-box",
     resize: "vertical",
-    fontFamily: "Inter, Arial, sans-serif",
-    lineHeight: 1.5,
+    lineHeight: 1.6,
+    fontFamily: "Consolas, 'Cascadia Mono', ui-monospace, monospace",
   },
 
-  /* Actions */
-
-  actions: {
-    display: "flex",
-    gap: "8px",
-    alignItems: "center",
-    justifyContent: "flex-end",
-  },
-
-  btnSearch: {
-    background: "rgba(37,99,235,0.2)",
-    color: "#60A5FA",
-    border: "1px solid rgba(37,99,235,0.35)",
-    borderRadius: "8px",
-    padding: "8px 20px",
-    cursor: "pointer",
-    fontWeight: 600,
-    fontSize: 13,
-  },
-
+  actions: { display: "flex", gap: 8, alignItems: "center", justifyContent: "flex-end", flexWrap: "wrap" },
+  btnSearch: ui.btnPrimary,
   btnProcess: {
-    background: "rgba(239,68,68,0.15)",
-    color: "#F87171",
-    border: "1px solid rgba(239,68,68,0.35)",
-    borderRadius: "8px",
-    padding: "8px 20px",
-    cursor: "pointer",
-    fontWeight: 600,
-    fontSize: 13,
+    ...ui.btnPrimary,
+    background: C.dangerSolid,
+    boxShadow: "0 10px 20px -12px rgba(220,38,38,0.9)",
   },
+  btnDisabled: { opacity: 0.5, cursor: "not-allowed", boxShadow: "none" },
 
-  btnDisabled: {
-    opacity: 0.45,
-    cursor: "not-allowed",
-  },
+  summary: { display: "flex", alignItems: "center", gap: 10, marginBottom: 12, flexWrap: "wrap" },
+  badge: { color: C.muted, fontSize: 13, fontWeight: 500 },
+  readyBadge: pill("success"),
 
-  /* Summary */
+  sectionBlock: { marginBottom: 20 },
+  tableTitle: { fontSize: 14, fontWeight: 700, color: C.ink, marginBottom: 10 },
 
-  summary: {
-    display: "flex",
-    alignItems: "center",
-    gap: "8px",
-    marginBottom: "10px",
-    flexWrap: "wrap",
-  },
-
-  badge: {
-    color: "#9CA3AF",
-    fontSize: 13,
-  },
-
-  readyBadge: {
-    background: "rgba(16,185,129,0.1)",
-    color: "#34D399",
-    border: "1px solid rgba(16,185,129,0.25)",
-    borderRadius: 6,
-    padding: "4px 8px",
-    fontSize: 11,
-    fontWeight: 600,
-  },
-
-  /* Sections */
-
-  sectionBlock: {
-    marginBottom: "20px",
-  },
-
-  tableTitle: {
-    fontSize: 13,
-    fontWeight: 600,
-    color: "#D1D5DB",
-    marginBottom: "10px",
-  },
-
-  /* Table */
-
-  tableWrap: {
-    overflowX: "auto",
-    borderRadius: "12px",
-    border: "1px solid #2a2a33",
-  },
-
-  table: {
-    width: "100%",
-    borderCollapse: "collapse",
-    minWidth: 700,
-  },
-
-  thead: {
-    background: "rgba(15,23,42,0.9)",
-  },
-
-  th: {
-    padding: "12px 14px",
-    textAlign: "center",
-    fontSize: 12,
-    fontWeight: 700,
-    color: "#6B7280",
-    textTransform: "uppercase",
-    letterSpacing: "0.05em",
-    borderBottom: "1px solid #2a2a33",
-    whiteSpace: "nowrap",
-  },
-
-  tableRow: {
-    backgroundColor: "#1e1e24",
-  },
-
-  td: {
-    textAlign: "center",
-    padding: "12px 14px",
-    borderBottom: "1px solid #23232a",
-    fontSize: 13,
-    whiteSpace: "nowrap",
-  },
+  tableWrap: ui.tableWrap,
+  table: { ...ui.table, minWidth: 700 },
+  thead: {},
+  th: { ...ui.th, textAlign: "center" },
+  tableRow: {},
+  td: { ...ui.td, textAlign: "center" },
 
   pre: {
     margin: 0,
-    padding: "8px",
-    background: "#15151a",
-    borderRadius: "6px",
-    color: "#9CA3AF",
+    padding: 10,
+    background: C.surfaceAlt,
+    border: `1px solid ${C.borderSoft}`,
+    borderRadius: 8,
+    color: C.text,
     fontSize: 11,
     whiteSpace: "pre-wrap",
     wordBreak: "break-word",

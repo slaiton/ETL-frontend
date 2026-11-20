@@ -13,9 +13,16 @@ import {
   LineElement,
   Filler,
 } from "chart.js";
+import {
+  LayoutDashboard, FileText, CheckCircle2, XCircle, FileWarning, Wallet, Receipt,
+  UserPlus, Send, PenLine, RefreshCw, ArrowRight,
+} from "lucide-react";
 import { useDashboard } from "../hooks/useDashboard";
 import { useWindowSize } from "../../../hooks/useWindowSize";
 import { useAutoRefresh } from "../../../hooks/useAutoRefresh";
+import PageHeader from "../../../components/ui/PageHeader";
+import { C, FONT_DISPLAY, ui } from "../../../shared/styles/ui";
+import { useTheme, type Theme } from "../../../shared/theme/theme";
 
 ChartJS.register(
   ArcElement,
@@ -29,33 +36,61 @@ ChartJS.register(
   Filler,
 );
 
+ChartJS.defaults.font.family = "'Segoe UI', system-ui, sans-serif";
+
 const REFRESH_INTERVAL = 60;
 
-/* ── Spinner inline ──────────────────────────────── */
-function Spinner() {
+/* Chart.js dibuja en canvas y no entiende var(--...): paleta propia por tema */
+const CHART: Record<Theme, {
+  tick: string; grid: string; legend: string; surface: string;
+  issued: string; issuedHover: string; cancelled: string; signed: string; pending: string;
+  createdFill: string; signedFill: string;
+}> = {
+  light: {
+    tick: "#64748B", grid: "#EEF2F7", legend: "#334155", surface: "#FFFFFF",
+    issued: "#0087F6", issuedHover: "#005FF9", cancelled: "#F43F5E", signed: "#10B981", pending: "#E2E8F0",
+    createdFill: "rgba(0,135,246,0.10)", signedFill: "rgba(16,185,129,0.10)",
+  },
+  dark: {
+    tick: "#94A3B8", grid: "#1C2740", legend: "#CBD5E1", surface: "#111A2E",
+    issued: "#2E9BFF", issuedHover: "#66B5FF", cancelled: "#FB7185", signed: "#34D399", pending: "#26334F",
+    createdFill: "rgba(46,155,255,0.16)", signedFill: "rgba(52,211,153,0.16)",
+  },
+};
+
+/* ── Helpers ─────────────────────────────────────── */
+function fmtTime(d: Date) {
+  return d.toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+}
+
+function fmtNumber(val: number) {
+  return Number(val ?? 0).toLocaleString("es-CO");
+}
+
+function fmtCurrency(val: number) {
+  return `$ ${Number(val ?? 0).toLocaleString("es-CO", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  })}`;
+}
+
+function Spinner({ size = 14 }: { size?: number }) {
   return (
-    <div
+    <span
       style={{
-        width: 14,
-        height: 14,
+        width: size,
+        height: size,
         borderRadius: "50%",
         flexShrink: 0,
-        border: "2px solid rgba(255,255,255,0.1)",
-        borderTopColor: "#3B82F6",
+        display: "inline-block",
+        border: `2px solid ${C.primaryTint2}`,
+        borderTopColor: C.primary,
         animation: "spin 0.8s linear infinite",
       }}
     />
   );
 }
 
-/* ── Formato hora ─────────────────────────────────── */
-function fmtTime(d: Date) {
-  return d.toLocaleTimeString("es-CO", {
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  });
-}
 
 /* ── Dashboard ───────────────────────────────────── */
 export default function Dashboard() {
@@ -77,145 +112,80 @@ export default function Dashboard() {
     policiesByCompany,
   } = useDashboard();
 
-  const { lastUpdated, isRefreshing, manualRefresh } = useAutoRefresh(
-    fetchData,
-    REFRESH_INTERVAL,
-  );
+  const { lastUpdated, isRefreshing, manualRefresh } = useAutoRefresh(fetchData, REFRESH_INTERVAL);
+  const { theme } = useTheme();
+  const P = CHART[theme];
+  const SERIES = { issued: P.issued, cancelled: P.cancelled, created: P.issued, signed: P.signed, pending: P.pending };
+
+  /* Opciones base de las gráficas (según el tema) */
+  const axisStyle = {
+    ticks: { color: P.tick },
+    grid: { color: P.grid },
+    border: { display: false },
+  };
+  const legendStyle = {
+    position: "bottom" as const,
+    labels: { color: P.legend, usePointStyle: true, pointStyle: "circle" as const, boxWidth: 8, padding: 16 },
+  };
 
   const handleFilter = (e: React.FormEvent) => {
     e.preventDefault();
     manualRefresh();
   };
 
-  /* Sólo primer render muestra el skeleton completo */
-  const isFirstLoad = loading && !lastUpdated;
-  if (isFirstLoad) {
+  /* Sólo el primer render muestra la carga completa */
+  if (loading && !lastUpdated) {
     return (
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          minHeight: "60vh",
-        }}
-      >
-        <div style={{ textAlign: "center", color: "#9CA3AF" }}>
-          <Spinner />
+      <div className="app-page" style={{ ...ui.page, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ textAlign: "center", color: C.muted }}>
+          <Spinner size={22} />
           <p style={{ marginTop: 12, fontSize: 14 }}>Cargando dashboard...</p>
         </div>
       </div>
     );
   }
 
-  /* ── Chart data ─────────────────────────────────── */
-  const labels = data?.period?.map((p) => p.period);
-  const issuedArray = data?.period?.map((p) => p.issued);
-  const cancelledArray = data?.period?.map((p) => p.cancelled);
+  /* ── Datos de las gráficas ────────────────────────── */
+  const periodLabels = data?.period?.map((p) => p.period);
   const entLabels = data?.entities_period_created?.map((e) => e.date) ?? [];
   const entCreated = data?.entities_period_created?.map((e) => e.total) ?? [];
   const entSigned = entLabels.map(
     (d) => data?.entities_period_signed?.find((s) => s.date === d)?.total ?? 0,
   );
 
-  const pieData = {
+  const periodData = {
+    labels: periodLabels,
+    datasets: [
+      { label: "Emitidos", data: data?.period?.map((p) => p.issued), backgroundColor: SERIES.issued, borderRadius: 6, maxBarThickness: 28 },
+      { label: "Cancelados", data: data?.period?.map((p) => p.cancelled), backgroundColor: SERIES.cancelled, borderRadius: 6, maxBarThickness: 28 },
+    ],
+  };
+  const periodOptions: ChartOptions<"bar"> = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: legendStyle },
+    scales: { x: axisStyle, y: { ...axisStyle, beginAtZero: true } },
+  };
+
+  const distributionData = {
     labels: ["Emitidos", "Cancelados"],
     datasets: [
       {
-        label: "Certificados",
         data: [data.general.issued, data.general.cancelled],
-        backgroundColor: ["#36A2EB", "#FF6384"],
+        backgroundColor: [SERIES.issued, SERIES.cancelled],
+        borderColor: P.surface,
+        borderWidth: 3,
       },
     ],
   };
   const pieOptions: ChartOptions<"pie"> = {
     responsive: true,
     maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: "bottom",
-        labels: { font: { size: 13 }, color: "#D1D5DB" },
-      },
-      tooltip: { enabled: true },
-    },
+    plugins: { legend: legendStyle },
   };
-  const doughnutOptions = pieOptions as ChartOptions<"doughnut">;
-  const barData = {
-    labels,
-    datasets: [
-      { label: "Emitidos", data: issuedArray, backgroundColor: "#3B82F6" },
-      { label: "Cancelados", data: cancelledArray, backgroundColor: "#EF4444" },
-    ],
-  };
-  const barOptions: ChartOptions<"bar"> = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: { legend: { labels: { color: "#D1D5DB" } } },
-    scales: {
-      x: {
-        ticks: { color: "#9CA3AF" },
-        grid: { color: "rgba(255,255,255,0.05)" },
-      },
-      y: {
-        ticks: { color: "#9CA3AF" },
-        grid: { color: "rgba(255,255,255,0.05)" },
-      },
-    },
-  };
-  const lineData = {
-    labels: entLabels,
-    datasets: [
-      {
-        label: "Terceros Creados",
-        data: entCreated,
-        borderColor: "#3B82F6",
-        backgroundColor: "rgba(59,130,246,0.12)",
-        tension: 0.4,
-        fill: true,
-      },
-      {
-        label: "Terceros Firmados",
-        data: entSigned,
-        borderColor: "#10B981",
-        backgroundColor: "rgba(16,185,129,0.12)",
-        tension: 0.4,
-        fill: true,
-      },
-    ],
-  };
-  const lineOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: { legend: { labels: { color: "#D1D5DB" } } },
-    scales: {
-      x: {
-        ticks: { color: "#9CA3AF" },
-        grid: { color: "rgba(255,255,255,0.05)" },
-      },
-      y: {
-        ticks: { color: "#9CA3AF" },
-        grid: { color: "rgba(255,255,255,0.05)" },
-      },
-    },
-  };
-  const donutData = {
-    labels: ["Firmadas", "Pendientes"],
-    datasets: [
-      {
-        data: [
-          data.entities_general.total_signed,
-          Math.max(
-            0,
-            data.entities_general.total_created -
-              data.entities_general.total_signed,
-          ),
-        ],
-        backgroundColor: ["#10B981", "#374151"],
-        borderWidth: 0,
-      },
-    ],
-  };
-  const policiesByCompanyData = {
-    /* Etiqueta en dos líneas: nombre + código (hay clientes con varias pólizas) */
+
+  /* Horizontal: los nombres de cliente son largos */
+  const byPolicyData = {
     labels: policiesByCompany.map((item) =>
       item.beneficiary_name
         ? [item.beneficiary_name, item.external_code ?? ""]
@@ -223,245 +193,205 @@ export default function Dashboard() {
     ),
     datasets: [
       {
-        label: "Pólizas emitidas",
+        label: "Certificados emitidos",
         data: policiesByCompany.map((item) => item.issued),
-        backgroundColor: "#3B82F6",
+        backgroundColor: P.issued,
+        hoverBackgroundColor: P.issuedHover,
+        borderRadius: 6,
+        maxBarThickness: 22,
       },
     ],
   };
-  const policiesByCompanyOptions: ChartOptions<"bar"> = {
-    ...barOptions,
+  const byPolicyOptions: ChartOptions<"bar"> = {
+    indexAxis: "y",
+    responsive: true,
+    maintainAspectRatio: false,
     plugins: { legend: { display: false } },
+    scales: {
+      x: { ...axisStyle, beginAtZero: true },
+      y: { ...axisStyle, grid: { display: false }, ticks: { color: P.legend, font: { size: 12 } } },
+    },
+  };
+  const byPolicyHeight = Math.max(240, policiesByCompany.length * 46);
+
+  const signaturesData = {
+    labels: entLabels,
+    datasets: [
+      {
+        label: "Terceros creados",
+        data: entCreated,
+        borderColor: SERIES.created,
+        backgroundColor: P.createdFill,
+        tension: 0.4,
+        fill: true,
+        pointRadius: 2,
+      },
+      {
+        label: "Terceros firmados",
+        data: entSigned,
+        borderColor: SERIES.signed,
+        backgroundColor: P.signedFill,
+        tension: 0.4,
+        fill: true,
+        pointRadius: 2,
+      },
+    ],
+  };
+  const lineOptions: ChartOptions<"line"> = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: legendStyle },
+    scales: { x: axisStyle, y: { ...axisStyle, beginAtZero: true } },
   };
 
-  /* ── Responsive helpers ─────────────────────────── */
-  const st = getStyles(isMobile);
+  const signatureStatusData = {
+    labels: ["Firmadas", "Pendientes"],
+    datasets: [
+      {
+        data: [
+          data.entities_general.total_signed,
+          Math.max(0, data.entities_general.total_created - data.entities_general.total_signed),
+        ],
+        backgroundColor: [SERIES.signed, SERIES.pending],
+        borderColor: P.surface,
+        borderWidth: 3,
+      },
+    ],
+  };
+  const doughnutOptions: ChartOptions<"doughnut"> = {
+    responsive: true,
+    maintainAspectRatio: false,
+    cutout: "68%",
+    plugins: { legend: legendStyle },
+  };
+
+  /* ── Layout helpers ──────────────────────────────── */
+  const span = (cols: number): React.CSSProperties => ({ gridColumn: isMobile ? "span 1" : `span ${cols}` });
   const grid: React.CSSProperties = {
     display: "grid",
-    width: "100%",
-    gridTemplateColumns: isMobile ? "1fr" : "repeat(12, 1fr)",
-    gap: "20px",
-    marginTop: "20px",
-    boxSizing: "border-box",
+    gridTemplateColumns: isMobile ? "1fr" : "repeat(12, minmax(0, 1fr))",
+    gap: 16,
   };
-  const gi = (cols: number): React.CSSProperties => ({
-    gridColumn: isMobile ? "span 1" : `span ${cols}`,
-  });
-  const chartCard: React.CSSProperties = {
-    background: "rgba(15,23,42,0.92)",
-    borderRadius: "22px",
-    padding: "24px",
-    border: "1px solid rgba(255,255,255,0.06)",
-    boxShadow: "0 10px 30px rgba(0,0,0,0.25)",
-  };
+  const chartHeight = isMobile ? 260 : 320;
 
-  /* ── Render ──────────────────────────────────────── */
+  const totalCertificates = data.general.issued + data.general.cancelled;
+
   return (
-    <div style={st.container}>
-      {/* ── Toolbar + status integrado ─────────────── */}
-      <form onSubmit={handleFilter} style={st.toolbar}>
-        <div style={st.formRow}>
-          <label style={st.label}>
-            Fecha inicio
-            <input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              style={st.dateInput}
-            />
+    <div className="app-page" style={ui.page}>
+      <div style={{ maxWidth: 1600, margin: "0 auto" }}>
+        <PageHeader
+          icon={<LayoutDashboard size={20} />}
+          title="Dashboard"
+          subtitle="Certificados, facturación y terceros del periodo seleccionado"
+          actions={
+            <div style={st.live}>
+              <span style={st.liveDot} className="pulse-dot" />
+              <span style={st.liveLabel}>EN VIVO</span>
+              {lastUpdated && <span style={st.liveTime}>{fmtTime(lastUpdated)}</span>}
+              <button
+                type="button"
+                onClick={manualRefresh}
+                disabled={isRefreshing}
+                style={st.refreshBtn}
+                title="Actualizar ahora"
+                aria-label="Actualizar ahora"
+              >
+                {isRefreshing ? <Spinner /> : <RefreshCw size={15} />}
+              </button>
+            </div>
+          }
+        />
+
+        {/* ── Filtros ─────────────────────────────── */}
+        <form onSubmit={handleFilter} style={{ ...ui.card, ...st.toolbar }}>
+          <label style={st.field}>
+            <span style={ui.label}>Fecha inicio</span>
+            <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} style={ui.input} />
           </label>
-          <label style={st.label}>
-            Fecha fin
-            <input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              style={st.dateInput}
-            />
+          <label style={st.field}>
+            <span style={ui.label}>Fecha fin</span>
+            <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} style={ui.input} />
           </label>
-          <label style={st.label}>
-            Periodo
-            <select
-              value={period}
-              onChange={(e) => setPeriod(e.target.value)}
-              style={st.select}
-            >
+          <label style={st.field}>
+            <span style={ui.label}>Periodo</span>
+            <select value={period} onChange={(e) => setPeriod(e.target.value)} style={ui.input}>
               <option value="day">Día</option>
               <option value="week">Semana</option>
               <option value="month">Mes</option>
             </select>
           </label>
-          <label style={st.label}>
-            Cliente
-            <select
-              value={policy_id}
-              onChange={(e) => setPolicy(e.target.value)}
-              style={st.select}
-            >
+          <label style={{ ...st.field, flex: 2, minWidth: 220 }}>
+            <span style={ui.label}>Cliente</span>
+            <select value={policy_id} onChange={(e) => setPolicy(e.target.value)} style={ui.input}>
               <option value="">Todos</option>
               {policies.map((p) => (
                 <option key={p.policy_id} value={String(p.policy_id)}>
-                  {p.beneficiary_name
-                    ? `${p.beneficiary_name} — ${p.external_code}`
-                    : p.external_code}
+                  {p.beneficiary_name ? `${p.beneficiary_name} — ${p.external_code}` : p.external_code}
                 </option>
               ))}
             </select>
           </label>
-          <button type="submit" style={st.button} disabled={isRefreshing}>
+          <button type="submit" style={{ ...ui.btnPrimary, alignSelf: "flex-end", minWidth: isMobile ? "100%" : 150 }} disabled={isRefreshing}>
             Aplicar filtros
           </button>
+        </form>
 
-          {/* Status embebido — separador + live + hora + refresh */}
-          <div style={st.statusInline}>
-            <span style={st.statusDivider} />
-            <span style={st.liveDot} className="pulse-dot" />
-            <span style={st.liveLabel}>EN VIVO</span>
-            {lastUpdated && (
-              <span style={st.lastUpdatedText}>{fmtTime(lastUpdated)}</span>
-            )}
-            <button
-              type="button"
-              onClick={manualRefresh}
-              disabled={isRefreshing}
-              style={st.refreshBtn}
-              title="Actualizar ahora"
-            >
-              {isRefreshing ? <Spinner /> : "↻"}
-            </button>
-          </div>
-        </div>
-      </form>
+        <div style={{ position: "relative" }}>
+          {isRefreshing && lastUpdated && <div style={st.refreshOverlay} />}
 
-      {/* Overlay sutil durante refresh post-primer-carga */}
-      <div style={{ position: "relative" }}>
-        {isRefreshing && lastUpdated && <div style={st.refreshOverlay} />}
-
-        <div style={st.dashboardContent}>
+          {/* ── Certificados ──────────────────────── */}
+          <SectionTitle title="Certificados" />
           <div style={grid} className="grid-responsive">
-            {/* ── KPI Cards ────────────────────────── */}
-            {[
-              {
-                label: "Certificados",
-                val: data.general.issued + data.general.cancelled,
-                color: "#34D399",
-                onClick: undefined,
-              },
-              {
-                label: "Emitidos",
-                val: data.general.issued,
-                color: "#60A5FA",
-                onClick: undefined,
-              },
-              {
-                label: "Cancelados",
-                val: data.general.cancelled,
-                color: "#F87171",
-                onClick: undefined,
-              },
-              {
-                label: "Sin Factura",
-                val: data.general.no_invoice,
-                color: "#FBBF24",
-                onClick: () => navigate("/certificates?invoice=false"),
-              },
-              {
-                label: "Nuevos Terceros",
-                val: data.entities_general.total_created,
-                color: "#818CF8",
-              },
-            ].map(({ label, val, color, onClick }) => (
-              <div
-                key={label}
-                style={{
-                  ...gi(2),
-                  ...baseCard,
-                  borderLeft: `4px solid ${color}`,
-                  cursor: onClick ? "pointer" : "default",
-                }}
-                onClick={onClick}
-              >
-                <div style={st.cardLabel}>{label}</div>
-                <div style={{ ...st.cardValue, color }}>{val}</div>
-              </div>
-            ))}
+            <Kpi style={span(3)} label="Total certificados" value={fmtNumber(totalCertificates)} icon={<FileText size={18} />} color={C.cyan} tint={C.cyanTint} />
+            <Kpi style={span(3)} label="Emitidos" value={fmtNumber(data.general.issued)} icon={<CheckCircle2 size={18} />} color={C.primaryStrong} tint={C.primaryTint} />
+            <Kpi style={span(3)} label="Cancelados" value={fmtNumber(data.general.cancelled)} icon={<XCircle size={18} />} color={C.danger} tint={C.dangerTint} />
+            <Kpi
+              style={span(3)}
+              label="Sin factura"
+              value={fmtNumber(data.general.no_invoice)}
+              icon={<FileWarning size={18} />}
+              color={C.warning}
+              tint={C.warningTint}
+              action="Ver certificados"
+              onClick={() => navigate("/certificates?invoice=false")}
+            />
 
-            {[
-              {
-                label: "Total Certificados",
-                val: fmtCurrency(data.general.total_billing),
-                color: "#4ADE80",
-              },
-              {
-                label: "Terceros Firmados",
-                val: data.entities_general.total_signed,
-                color: "#34D399",
-              },
-              {
-                label: "Terceros Notificados",
-                val: data.entities_general.total_sent,
-                color: "#A78BFA",
-              },
-              {
-                label: "Total Facturas",
-                val: fmtCurrency(data.invoices.total_billing),
-                color: "#38BDF8",
-              },
-            ].map(({ label, val, color }) => (
-              <div
-                key={label}
-                style={{
-                  ...gi(
-                    label === "Total Certificados" || label === "Total Facturas"
-                      ? 3
-                      : 3,
-                  ),
-                  ...baseCard,
-                  borderLeft: `4px solid ${color}`,
-                }}
-              >
-                <div style={st.cardLabel}>{label}</div>
-                <div style={{ ...st.cardValue, color }}>{val}</div>
-              </div>
-            ))}
+            <ChartCard style={span(8)} title="Certificados por periodo" height={chartHeight}>
+              <Bar data={periodData} options={periodOptions} />
+            </ChartCard>
+            <ChartCard style={span(4)} title="Distribución" height={chartHeight}>
+              <Pie data={distributionData} options={pieOptions} />
+            </ChartCard>
 
-            {/* ── Charts ───────────────────────────── */}
-            <div style={{ ...gi(4), ...chartCard }}>
-              <p style={st.chartTitle}>Distribución Certificados</p>
-              <div style={st.chartBox}>
-                <Pie data={pieData} options={pieOptions} />
-              </div>
-            </div>
-            <div style={{ ...gi(8), ...chartCard }}>
-              <p style={st.chartTitle}>Pólizas emitidas por empresa</p>
-              <div style={st.chartBox}>
-                <Bar
-                  data={policiesByCompanyData}
-                  options={policiesByCompanyOptions}
-                />
-              </div>
-            </div>
+            <ChartCard style={span(12)} title="Certificados emitidos por póliza" subtitle="Pólizas vigentes con facturación" height={byPolicyHeight}>
+              {policiesByCompany.length > 0 ? (
+                <Bar data={byPolicyData} options={byPolicyOptions} />
+              ) : (
+                <EmptyChart text="No hay pólizas vigentes con facturación" />
+              )}
+            </ChartCard>
+          </div>
 
-            <div style={{ ...gi(12), ...chartCard }}>
-              <p style={st.chartTitle}>Certificados por período</p>
-              <div style={st.chartBox}>
-                <Bar data={barData} options={barOptions} />
-              </div>
-            </div>
+          {/* ── Facturación ───────────────────────── */}
+          <SectionTitle title="Facturación" />
+          <div style={grid} className="grid-responsive">
+            <Kpi style={span(6)} size="lg" label="Valor certificados" value={fmtCurrency(data.general.total_billing)} icon={<Wallet size={18} />} color={C.success} tint={C.successTint} />
+            <Kpi style={span(6)} size="lg" label="Valor facturas" value={fmtCurrency(data.invoices.total_billing)} icon={<Receipt size={18} />} color={C.primaryStrong} tint={C.primaryTint} />
+          </div>
 
-            <div style={{ ...gi(8), ...chartCard }}>
-              <p style={st.chartTitle}>Tendencia de Firmas</p>
-              <div style={st.chartBox}>
-                <Line data={lineData} options={lineOptions} />
-              </div>
-            </div>
+          {/* ── Terceros ──────────────────────────── */}
+          <SectionTitle title="Terceros" />
+          <div style={grid} className="grid-responsive">
+            <Kpi style={span(4)} label="Nuevos terceros" value={fmtNumber(data.entities_general.total_created)} icon={<UserPlus size={18} />} color={C.violet} tint={C.violetTint} />
+            <Kpi style={span(4)} label="Notificados" value={fmtNumber(data.entities_general.total_sent)} icon={<Send size={18} />} color={C.primaryStrong} tint={C.primaryTint} />
+            <Kpi style={span(4)} label="Firmados" value={fmtNumber(data.entities_general.total_signed)} icon={<PenLine size={18} />} color={C.success} tint={C.successTint} />
 
-            <div style={{ ...gi(4), ...chartCard }}>
-              <p style={st.chartTitle}>Estado de Firma</p>
-              <div style={st.chartBox}>
-                <Doughnut data={donutData} options={doughnutOptions} />
-              </div>
-            </div>
+            <ChartCard style={span(8)} title="Tendencia de firmas" height={chartHeight}>
+              <Line data={signaturesData} options={lineOptions} />
+            </ChartCard>
+            <ChartCard style={span(4)} title="Estado de firma" height={chartHeight}>
+              <Doughnut data={signatureStatusData} options={doughnutOptions} />
+            </ChartCard>
           </div>
         </div>
       </div>
@@ -469,191 +399,182 @@ export default function Dashboard() {
   );
 }
 
-/* ── Helpers ─────────────────────────────────────── */
-function fmtCurrency(val: number) {
-  return Number(val ?? 0).toLocaleString("es-CO", {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-  });
+/* ── Sub-componentes ──────────────────────────────── */
+
+function SectionTitle({ title }: { title: string }) {
+  return (
+    <h2 style={st.sectionTitle}>
+      <span style={st.sectionBar} />
+      {title}
+    </h2>
+  );
 }
 
-const baseCard: React.CSSProperties = {
-  background: "rgba(30,41,59,0.92)",
-  border: "1px solid rgba(255,255,255,0.06)",
-  borderRadius: "20px",
-  padding: "20px",
-  color: "white",
-  boxShadow: "0 8px 20px rgba(0,0,0,0.2)",
-  backdropFilter: "blur(10px)",
-  transition: "transform .2s ease",
-};
+interface KpiProps {
+  label: string;
+  value: string;
+  icon: React.ReactNode;
+  color: string;
+  tint: string;
+  size?: "md" | "lg";
+  action?: string;
+  onClick?: () => void;
+  style?: React.CSSProperties;
+}
 
-/* ── Responsive styles ───────────────────────────── */
-function getStyles(isMobile: boolean): Record<string, React.CSSProperties> {
-  return {
-    container: {
-      maxWidth: "100%",
-      margin: "0 auto",
-      minHeight: "100dvh",
-      boxSizing: "border-box",
-      padding: "20px",
-      background: "linear-gradient(160deg,#0d1424 0%,#0f172a 50%,#111827 100%)",
-    },
-    statusInline: {
-      display: "flex",
-      alignItems: "center",
-      gap: 8,
-      marginLeft: "auto",
-    },
-    statusDivider: {
-      display: "block",
-      width: 1,
-      height: 20,
-      background: "rgba(255,255,255,0.1)",
-      marginRight: 4,
-    },
-    liveDot: {
-      width: 7,
-      height: 7,
-      borderRadius: "50%",
-      background: "#34D399",
-      display: "block",
-      flexShrink: 0,
-    },
-    liveLabel: {
-      fontSize: 11,
-      fontWeight: 700,
-      letterSpacing: "0.08em",
-      color: "#34D399",
-    },
-    lastUpdatedText: {
-      fontSize: 12,
-      color: "#6B7280",
-      fontVariantNumeric: "tabular-nums",
-    },
-    refreshBtn: {
-      background: "none",
-      border: "none",
-      color: "#4B5563",
-      cursor: "pointer",
-      fontSize: 16,
-      padding: "2px 6px",
-      display: "flex",
-      alignItems: "center",
-      borderRadius: 6,
-      transition: "color .2s",
-      lineHeight: 1,
-    },
-    refreshOverlay: {
-      position: "absolute",
-      inset: 0,
-      borderRadius: 12,
-      background: "rgba(13,20,36,0.45)",
-      backdropFilter: "blur(2px)",
-      zIndex: 10,
-      pointerEvents: "none",
-    },
-    toolbar: {
-      display: "flex",
-      justifyContent: "flex-end",
-      alignItems: "center",
-      background: "rgba(31,41,55,0.7)",
-      border: "1px solid rgba(255,255,255,0.06)",
-      padding: "12px 20px",
-      borderRadius: 12,
-      marginBottom: 20,
-      backdropFilter: "blur(8px)",
-    },
-    formRow: {
-      display: "flex",
-      flexDirection: isMobile ? "column" : "row",
-      gap: 12,
-      alignItems: isMobile ? "stretch" : "flex-end",
-      justifyContent: "flex-start",
-      width: "100%",
-    },
-    label: {
-      display: "flex",
-      flexDirection: "column",
-      gap: 6,
-      color: "#9CA3AF",
-      fontSize: 12,
-      fontWeight: 500,
-      width: isMobile ? "100%" : "auto",
-    },
-    dateInput: {
-      minWidth: isMobile ? "100%" : "160px",
-      padding: "10px 12px",
-      borderRadius: 10,
-      border: "1px solid rgba(255,255,255,0.08)",
-      background: "rgba(15,23,42,0.95)",
-      color: "#fff",
-      fontSize: 13,
-      outline: "none",
-      boxSizing: "border-box",
-      colorScheme: "dark",
-      minHeight: 42,
-      cursor: "pointer",
-    },
-    select: {
-      minWidth: isMobile ? "100%" : "150px",
-      padding: "10px 32px 10px 12px",
-      borderRadius: 10,
-      border: "1px solid rgba(255,255,255,0.08)",
-      backgroundColor: "rgba(15,23,42,0.95)",
-      color: "#fff",
-      fontSize: 13,
-      outline: "none",
-      boxSizing: "border-box",
-      minHeight: 42,
-      cursor: "pointer",
-    },
-    button: {
-      background: "#2563EB",
-      color: "#fff",
-      border: "none",
-      borderRadius: 10,
-      padding: "10px 20px",
-      cursor: "pointer",
-      fontWeight: 600,
-      minHeight: 42,
-      fontSize: 13,
-      minWidth: isMobile ? "100%" : 150,
-      boxShadow: "0 4px 14px rgba(37,99,235,.3)",
-      transition: "all .2s ease",
-    },
-    dashboardContent: {
-      width: "100%",
-      maxWidth: 1600,
-      margin: "0 auto",
-    },
-    cardLabel: {
-      fontSize: 13,
-      fontWeight: 600,
-      opacity: 0.7,
-      marginBottom: 8,
-      textAlign: "center",
-    },
-    cardValue: {
-      fontSize: "2.2rem",
-      fontWeight: 800,
-      textAlign: "center",
-      lineHeight: 1,
-      marginTop: 4,
-    },
-    chartBox: {
-      width: "100%",
-      height: isMobile ? "260px" : "380px",
-      boxSizing: "border-box",
-    },
-    chartTitle: {
-      color: "#9CA3AF",
-      textAlign: "left",
-      marginBottom: 16,
-      fontSize: 13,
-      fontWeight: 600,
-      textTransform: "uppercase",
-      letterSpacing: 1,
-    },
+function Kpi({ label, value, icon, color, tint, size = "md", action, onClick, style }: KpiProps) {
+  const content = (
+    <>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+        <span style={st.kpiLabel}>{label}</span>
+        <span style={{ ...st.kpiIcon, color, background: tint }}>{icon}</span>
+      </div>
+      <div style={{ ...st.kpiValue, fontSize: size === "lg" ? 30 : 28 }}>{value}</div>
+      {action && (
+        <span style={{ ...st.kpiAction, color }}>
+          {action} <ArrowRight size={13} />
+        </span>
+      )}
+    </>
+  );
+
+  const base: React.CSSProperties = {
+    ...ui.card,
+    ...st.kpi,
+    borderTop: `3px solid ${color}`,
+    ...style,
   };
+
+  return onClick ? (
+    <button type="button" onClick={onClick} style={{ ...base, ...st.kpiButton }}>
+      {content}
+    </button>
+  ) : (
+    <div style={base}>{content}</div>
+  );
 }
+
+function ChartCard({
+  title, subtitle, height, style, children,
+}: {
+  title: string;
+  subtitle?: string;
+  height: number;
+  style?: React.CSSProperties;
+  children: React.ReactNode;
+}) {
+  return (
+    <div style={{ ...ui.card, padding: 20, minWidth: 0, ...style }}>
+      <div style={{ marginBottom: 14 }}>
+        <p style={st.chartTitle}>{title}</p>
+        {subtitle && <p style={st.chartSubtitle}>{subtitle}</p>}
+      </div>
+      <div style={{ width: "100%", height, position: "relative" }}>{children}</div>
+    </div>
+  );
+}
+
+function EmptyChart({ text }: { text: string }) {
+  return (
+    <div style={{ height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: C.faint, fontSize: 13 }}>
+      {text}
+    </div>
+  );
+}
+
+/* ── Estilos ─────────────────────────────────────── */
+const st: Record<string, React.CSSProperties> = {
+  live: {
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
+    padding: "6px 8px 6px 12px",
+    borderRadius: 999,
+    background: C.surface,
+    border: `1px solid ${C.border}`,
+  },
+  liveDot: { width: 7, height: 7, borderRadius: "50%", background: C.success, display: "block", flexShrink: 0 },
+  liveLabel: { fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", color: C.success },
+  liveTime: { fontSize: 12, color: C.muted, fontVariantNumeric: "tabular-nums" },
+  refreshBtn: {
+    ...ui.btnIcon,
+    width: 30,
+    height: 30,
+    minHeight: 30,
+    borderRadius: 999,
+    background: C.primaryTint,
+    color: C.primaryStrong,
+    border: "none",
+  },
+
+  toolbar: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: 12,
+    alignItems: "flex-end",
+    padding: 16,
+    marginBottom: 8,
+  },
+  field: { display: "flex", flexDirection: "column", gap: 6, flex: 1, minWidth: 150 },
+
+  refreshOverlay: {
+    position: "absolute",
+    inset: 0,
+    borderRadius: 16,
+    background: C.veil,
+    backdropFilter: "blur(1px)",
+    zIndex: 10,
+    pointerEvents: "none",
+  },
+
+  sectionTitle: {
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+    margin: "28px 0 12px",
+    fontFamily: FONT_DISPLAY,
+    fontSize: 15,
+    fontWeight: 700,
+    color: C.ink,
+  },
+  sectionBar: { width: 4, height: 18, borderRadius: 4, background: C.gradient, display: "inline-block" },
+
+  kpi: {
+    padding: "16px 18px",
+    display: "flex",
+    flexDirection: "column",
+    gap: 10,
+    minWidth: 0,
+    textAlign: "left",
+    boxSizing: "border-box",
+  },
+  kpiButton: {
+    cursor: "pointer",
+    font: "inherit",
+    color: "inherit",
+    width: "100%",
+  },
+  kpiLabel: { fontSize: 13, fontWeight: 600, color: C.muted },
+  kpiIcon: {
+    width: 34,
+    height: 34,
+    borderRadius: 10,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+  },
+  kpiValue: {
+    fontFamily: FONT_DISPLAY,
+    fontWeight: 800,
+    color: C.ink,
+    lineHeight: 1.1,
+    letterSpacing: "-0.01em",
+    fontVariantNumeric: "tabular-nums",
+    overflowWrap: "anywhere",
+  },
+  kpiAction: { display: "inline-flex", alignItems: "center", gap: 4, fontSize: 12, fontWeight: 700 },
+
+  chartTitle: { margin: 0, fontFamily: FONT_DISPLAY, fontSize: 14, fontWeight: 700, color: C.ink },
+  chartSubtitle: { margin: "2px 0 0", fontSize: 12, color: C.muted },
+};

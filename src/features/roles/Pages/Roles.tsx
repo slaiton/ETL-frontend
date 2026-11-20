@@ -6,6 +6,7 @@ import {
 import { getRoles, createRole, updateRole, deleteRole } from "../../../api/roles";
 import { ALL_MODULES, HOME_PAGE_OPTIONS } from "../../../models/roles.model";
 import type { Role, CreateRolePayload, ModuleKey } from "../../../models/roles.model";
+import { C, ui } from "../../../shared/styles/ui";
 
 /* ── Module icons ────────────────────────────────── */
 const MOD_ICON: Record<ModuleKey, React.ReactNode> = {
@@ -27,10 +28,10 @@ const homePageLabel = (key?: string) =>
   HOME_PAGE_OPTIONS.find(o => o.key === (key ?? "home"))?.label ?? "Inicio";
 
 const BADGE_COLORS = [
-  { bg: "rgba(239,68,68,0.1)",   text: "#FCA5A5", border: "rgba(239,68,68,0.25)" },
-  { bg: "rgba(59,130,246,0.1)",  text: "#93C5FD", border: "rgba(59,130,246,0.25)" },
-  { bg: "rgba(16,185,129,0.1)",  text: "#6EE7B7", border: "rgba(16,185,129,0.25)" },
-  { bg: "rgba(167,139,250,0.1)", text: "#C4B5FD", border: "rgba(167,139,250,0.25)" },
+  { bg: C.primaryTint, text: C.primaryStrong, border: C.primaryTint2 },
+  { bg: C.cyanTint, text: C.cyan, border: C.cyanBorder },
+  { bg: C.successTint, text: C.success, border: C.successBorder },
+  { bg: C.violetTint, text: C.violet, border: C.violetBorder },
 ];
 const roleColor = (idx: number) => BADGE_COLORS[idx % BADGE_COLORS.length];
 
@@ -70,8 +71,8 @@ function RoleModal({
         {/* Header */}
         <div style={mo.header}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <Shield size={18} color="#A78BFA" />
-            <span style={{ fontWeight: 700, fontSize: 16, color: "#F9FAFB" }}>
+            <Shield size={18} color={C.primaryStrong} />
+            <span style={{ fontWeight: 700, fontSize: 16, color: C.ink }}>
               {mode === "create" ? "Nuevo rol" : "Editar rol"}
             </span>
           </div>
@@ -105,7 +106,7 @@ function RoleModal({
           <div style={mo.fieldGroup}>
             <label style={mo.fieldLabel}>
               <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                <Navigation size={12} color="#6B7280" />
+                <Navigation size={12} color={C.muted} />
                 Página de inicio del rol
               </span>
             </label>
@@ -115,12 +116,12 @@ function RoleModal({
               style={{ ...mo.fieldInput, cursor: "pointer" }}
             >
               {HOME_PAGE_OPTIONS.map(opt => (
-                <option key={opt.key} value={opt.key} style={{ background: "#0F172A" }}>
+                <option key={opt.key} value={opt.key}>
                   {opt.label}
                 </option>
               ))}
             </select>
-            <span style={{ fontSize: 11, color: "#4B5563" }}>
+            <span style={{ fontSize: 11, color: C.faint }}>
               Los usuarios con este rol aterrizarán aquí tras iniciar sesión.
             </span>
           </div>
@@ -146,8 +147,8 @@ function RoleModal({
                 >
                   <span style={{
                     width: 16, height: 16, borderRadius: 4, flexShrink: 0,
-                    border: `2px solid ${active ? "#A78BFA" : "#374151"}`,
-                    background: active ? "#7C3AED" : "transparent",
+                    border: `2px solid ${active ? C.primary : C.borderStrong}`,
+                    background: active ? C.primary : C.surface,
                     display: "flex", alignItems: "center", justifyContent: "center",
                     transition: "all .15s",
                   }}>
@@ -155,18 +156,18 @@ function RoleModal({
                   </span>
                   <span style={{
                     width: 28, height: 28, borderRadius: 8, flexShrink: 0,
-                    background: active ? "rgba(124,58,237,0.15)" : "rgba(255,255,255,0.04)",
-                    border: `1px solid ${active ? "rgba(124,58,237,0.3)" : "rgba(255,255,255,0.07)"}`,
+                    background: active ? C.primaryTint : C.surfaceAlt,
+                    border: `1px solid ${active ? C.primaryTint2 : C.border}`,
                     display: "flex", alignItems: "center", justifyContent: "center",
-                    color: active ? "#C4B5FD" : "#6B7280",
+                    color: active ? C.primaryStrong : C.muted,
                   }}>
                     {MOD_ICON[mod.key]}
                   </span>
                   <span style={{ fontSize: 13, fontWeight: active ? 600 : 400 }}>{mod.label}</span>
                   {active && (
                     <span style={{
-                      marginLeft: "auto", fontSize: 11, color: "#A78BFA",
-                      background: "rgba(124,58,237,0.12)", border: "1px solid rgba(124,58,237,0.2)",
+                      marginLeft: "auto", fontSize: 11, color: C.primaryStrong,
+                      background: C.primaryTint, border: `1px solid ${C.primaryTint2}`,
                       borderRadius: 999, padding: "1px 8px", fontWeight: 600,
                     }}>
                       Activo
@@ -177,7 +178,7 @@ function RoleModal({
             })}
           </div>
 
-          <div style={{ marginTop: 10, fontSize: 12, color: "#6B7280", textAlign: "right" }}>
+          <div style={{ marginTop: 10, fontSize: 12, color: C.muted, textAlign: "right" }}>
             {form.permissions.length} de {ALL_MODULES.length} módulos seleccionados
           </div>
         </div>
@@ -207,16 +208,16 @@ function DeleteConfirm({ role, onConfirm, onCancel, deleting }: {
     <div style={mo.overlay} onClick={onCancel}>
       <div style={{ ...mo.card, maxWidth: 400 }} onClick={(e) => e.stopPropagation()}>
         <div style={mo.header}>
-          <span style={{ fontWeight: 700, color: "#F87171", fontSize: 15 }}>Eliminar rol</span>
+          <span style={{ fontWeight: 700, color: C.danger, fontSize: 15 }}>Eliminar rol</span>
           <button onClick={onCancel} style={mo.closeBtn}><X size={16} /></button>
         </div>
-        <p style={{ color: "#9CA3AF", fontSize: 14, padding: "16px 0 8px", lineHeight: 1.5 }}>
-          ¿Seguro de eliminar <strong style={{ color: "#E5E7EB" }}>{role.name}</strong>?
+        <p style={{ color: C.muted, fontSize: 14, padding: "16px 0 8px", lineHeight: 1.5 }}>
+          ¿Seguro de eliminar <strong style={{ color: C.ink }}>{role.name}</strong>?
           No se puede eliminar si hay usuarios asignados.
         </p>
         <div style={mo.actions}>
           <button onClick={onCancel} style={mo.btnCancel} disabled={deleting}>Cancelar</button>
-          <button onClick={onConfirm} style={{ ...mo.btnSave, background: "#DC2626" }} disabled={deleting}>
+          <button onClick={onConfirm} style={{ ...mo.btnSave, background: C.dangerSolid, boxShadow: "0 10px 20px -12px rgba(220,38,38,0.9)" }} disabled={deleting}>
             <Trash2 size={14} style={{ marginRight: 6 }} />
             {deleting ? "Eliminando..." : "Sí, eliminar"}
           </button>
@@ -327,12 +328,12 @@ export default function RolesPage() {
   };
 
   return (
-    <div style={st.container}>
+    <div className="app-page" style={st.container}>
 
       {/* ── Header ─────────────────────────────────── */}
       <div style={st.pageHeader}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={st.iconWrap}><Shield size={20} color="#A78BFA" /></div>
+          <div style={st.iconWrap}><Shield size={20} /></div>
           <div>
             <h1 style={st.title}>Roles y permisos</h1>
             <p style={st.subtitle}>Administración de perfiles de acceso</p>
@@ -362,7 +363,7 @@ export default function RolesPage() {
       </div>
 
       {loading ? (
-        <p style={{ color: "#6B7280", fontSize: 14 }}>Cargando roles...</p>
+        <p style={{ color: C.muted, fontSize: 14 }}>Cargando roles...</p>
       ) : view === "cards" ? (
 
         /* ── Vista tarjetas ──────────────────────── */
@@ -380,16 +381,16 @@ export default function RolesPage() {
                   </div>
                   <div style={{ flex: 1 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                      <span style={{ fontWeight: 700, fontSize: 15, color: "#F9FAFB" }}>{role.name}</span>
+                      <span style={{ fontWeight: 700, fontSize: 15, color: C.ink }}>{role.name}</span>
                       {full && (
-                        <span style={{ fontSize: 10, fontWeight: 700, color: "#A78BFA",
-                          background: "rgba(124,58,237,0.12)", border: "1px solid rgba(124,58,237,0.25)",
+                        <span style={{ fontSize: 10, fontWeight: 700, color: C.primaryStrong,
+                          background: C.primaryTint, border: `1px solid ${C.primaryTint2}`,
                           borderRadius: 999, padding: "2px 7px", letterSpacing: "0.04em" }}>
                           FULL
                         </span>
                       )}
                     </div>
-                    <div style={{ fontSize: 11, color: "#6B7280", marginTop: 2 }}>ID: {role.id}</div>
+                    <div style={{ fontSize: 11, color: C.muted, marginTop: 2 }}>ID: {role.id}</div>
                   </div>
                   <div style={{ display: "flex", gap: 6 }}>
                     <button onClick={() => openEdit(role)} style={st.btnEdit} title="Editar">
@@ -402,25 +403,25 @@ export default function RolesPage() {
                 </div>
 
                 {role.description && (
-                  <p style={{ fontSize: 13, color: "#9CA3AF", margin: 0, lineHeight: 1.5 }}>
+                  <p style={{ fontSize: 13, color: C.muted, margin: 0, lineHeight: 1.5 }}>
                     {role.description}
                   </p>
                 )}
 
                 {/* Home page badge */}
-                <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: "#6B7280" }}>
-                  <Navigation size={11} color="#6B7280" />
-                  <span>Inicio: <span style={{ color: "#9CA3AF", fontWeight: 600 }}>{homePageLabel(role.home_page)}</span></span>
+                <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: C.muted }}>
+                  <Navigation size={11} color={C.muted} />
+                  <span>Inicio: <span style={{ color: C.muted, fontWeight: 600 }}>{homePageLabel(role.home_page)}</span></span>
                 </div>
 
-                <div style={{ borderTop: "1px solid rgba(255,255,255,0.05)", paddingTop: 12 }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: "#6B7280",
+                <div style={{ borderTop: `1px solid ${C.borderSoft}`, paddingTop: 12 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: C.muted,
                     textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 8 }}>
                     {role.permissions.length} / {ALL_MODULES.length} módulos
                   </div>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                     {role.permissions.length === 0 ? (
-                      <span style={{ fontSize: 12, color: "#4B5563", fontStyle: "italic" }}>Sin acceso</span>
+                      <span style={{ fontSize: 12, color: C.faint, fontStyle: "italic" }}>Sin acceso</span>
                     ) : role.permissions.map((p) => {
                       const mod = ALL_MODULES.find((m) => m.key === p);
                       return (
@@ -445,7 +446,7 @@ export default function RolesPage() {
 
         /* ── Vista matriz ────────────────────────── */
         <div style={st.matrixWrap}>
-          <p style={{ fontSize: 13, color: "#6B7280", marginBottom: 16 }}>
+          <p style={{ fontSize: 13, color: C.muted, marginBottom: 16 }}>
             Haz clic en una celda para activar o desactivar el permiso directamente.
           </p>
           <div style={{ overflowX: "auto" }}>
@@ -456,7 +457,7 @@ export default function RolesPage() {
                   {ALL_MODULES.map((mod) => (
                     <th key={mod.key} style={st.mth}>
                       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-                        <span style={{ color: "#A78BFA" }}>{MOD_ICON[mod.key]}</span>
+                        <span style={{ color: C.primaryStrong }}>{MOD_ICON[mod.key]}</span>
                         <span>{mod.label}</span>
                       </div>
                     </th>
@@ -479,17 +480,17 @@ export default function RolesPage() {
                             <Shield size={13} color={colors.text} />
                           </div>
                           <div>
-                            <div style={{ fontSize: 13, fontWeight: 600, color: "#E5E7EB", display: "flex", alignItems: "center", gap: 5 }}>
+                            <div style={{ fontSize: 13, fontWeight: 600, color: C.ink, display: "flex", alignItems: "center", gap: 5 }}>
                               {role.name}
                               {full && (
-                                <span style={{ fontSize: 9, fontWeight: 700, color: "#A78BFA",
-                                  background: "rgba(124,58,237,0.12)", borderRadius: 999,
-                                  padding: "1px 6px", border: "1px solid rgba(124,58,237,0.2)" }}>
+                                <span style={{ fontSize: 9, fontWeight: 700, color: C.primaryStrong,
+                                  background: C.primaryTint, borderRadius: 999,
+                                  padding: "1px 6px", border: `1px solid ${C.primaryTint2}` }}>
                                   FULL
                                 </span>
                               )}
                             </div>
-                            <div style={{ fontSize: 11, color: "#4B5563" }}>ID: {role.id}</div>
+                            <div style={{ fontSize: 11, color: C.faint }}>ID: {role.id}</div>
                           </div>
                         </div>
                       </td>
@@ -507,17 +508,17 @@ export default function RolesPage() {
                           >
                             <div style={{
                               width: 28, height: 28, borderRadius: 8, margin: "0 auto",
-                              border: `2px solid ${has ? "rgba(124,58,237,0.4)" : "rgba(255,255,255,0.07)"}`,
-                              background: has ? "rgba(124,58,237,0.15)" : "rgba(255,255,255,0.02)",
+                              border: `2px solid ${has ? C.primary : C.border}`,
+                              background: has ? C.primaryTint : C.surface,
                               display: "flex", alignItems: "center", justifyContent: "center",
                               transition: "all .15s", opacity: busy ? 0.4 : 1,
                             }}>
                               {busy ? (
                                 <div style={{ width: 10, height: 10, borderRadius: "50%",
-                                  border: "2px solid #A78BFA", borderTopColor: "transparent",
+                                  border: `2px solid ${C.primary}`, borderTopColor: "transparent",
                                   animation: "spin .6s linear infinite" }} />
                               ) : has ? (
-                                <Check size={13} color="#A78BFA" strokeWidth={3} />
+                                <Check size={13} color={C.primaryStrong} strokeWidth={3} />
                               ) : null}
                             </div>
                           </td>
@@ -526,7 +527,7 @@ export default function RolesPage() {
 
                       {/* Columna inicio */}
                       <td style={{ ...st.mtd, ...st.mtdCell }}>
-                        <span style={{ fontSize: 11, color: "#9CA3AF", whiteSpace: "nowrap" as const }}>
+                        <span style={{ fontSize: 11, color: C.muted, whiteSpace: "nowrap" as const }}>
                           {homePageLabel(role.home_page)}
                         </span>
                       </td>
@@ -572,71 +573,69 @@ export default function RolesPage() {
 
 /* ── Page styles ─────────────────────────────────── */
 const st: Record<string, React.CSSProperties> = {
-  container: { padding: "24px", fontFamily: "Inter, Arial, sans-serif", color: "#e4e4e7", minHeight: "100vh" },
+  container: { ...ui.page },
   pageHeader: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24, flexWrap: "wrap", gap: 12 },
-  iconWrap: { width: 40, height: 40, borderRadius: 10, flexShrink: 0,
-    background: "rgba(167,139,250,0.12)", border: "1px solid rgba(167,139,250,0.2)",
-    display: "flex", alignItems: "center", justifyContent: "center" },
-  title: { fontSize: 22, fontWeight: 800, color: "#F9FAFB", margin: 0 },
-  subtitle: { fontSize: 13, color: "#6B7280", margin: "2px 0 0" },
-  btnNew: { display: "flex", alignItems: "center",
-    background: "rgba(167,139,250,0.15)", color: "#C4B5FD",
-    border: "1px solid rgba(167,139,250,0.3)", borderRadius: 10,
-    padding: "10px 18px", cursor: "pointer", fontWeight: 600, fontSize: 14 },
-  viewToggle: { display: "flex", background: "rgba(255,255,255,0.04)",
-    border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8, overflow: "hidden" },
-  viewBtn: { background: "transparent", border: "none", color: "#6B7280",
-    padding: "8px 12px", cursor: "pointer", display: "flex", alignItems: "center" },
-  viewBtnActive: { background: "rgba(124,58,237,0.2)", color: "#C4B5FD" },
+  iconWrap: ui.iconTile,
+  title: ui.title,
+  subtitle: ui.subtitle,
+  btnNew: ui.btnPrimary,
+  viewToggle: {
+    display: "flex", background: C.surface, border: `1px solid ${C.border}`,
+    borderRadius: 10, overflow: "hidden", padding: 3, gap: 2,
+  },
+  viewBtn: {
+    background: "transparent", border: "none", color: C.muted, borderRadius: 8,
+    padding: "7px 11px", cursor: "pointer", display: "flex", alignItems: "center",
+  },
+  viewBtnActive: { background: C.primaryTint, color: C.primaryStrong },
   grid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(310px, 1fr))", gap: 20 },
-  card: { background: "rgba(15,23,42,0.8)", border: "1px solid rgba(255,255,255,0.07)",
-    borderRadius: 16, padding: "20px", display: "flex", flexDirection: "column", gap: 12,
-    boxShadow: "0 8px 24px rgba(0,0,0,0.2)" },
+  card: { ...ui.card, padding: "20px", display: "flex", flexDirection: "column", gap: 12 },
   cardHeader: { display: "flex", alignItems: "center", gap: 12 },
-  btnEdit: { background: "rgba(37,99,235,0.12)", color: "#60A5FA", border: "1px solid rgba(37,99,235,0.25)",
-    borderRadius: 8, padding: "7px 10px", cursor: "pointer", display: "flex", alignItems: "center" },
-  btnDelete: { background: "rgba(220,38,38,0.1)", color: "#F87171", border: "1px solid rgba(220,38,38,0.2)",
-    borderRadius: 8, padding: "7px 10px", cursor: "pointer", display: "flex", alignItems: "center" },
-  matrixWrap: { background: "rgba(15,23,42,0.7)", border: "1px solid rgba(255,255,255,0.06)",
-    borderRadius: 16, padding: "20px" },
+  btnEdit: {
+    ...ui.btnIcon, background: C.primaryTint, color: C.primaryStrong,
+    border: `1px solid ${C.primaryTint2}`,
+  },
+  btnDelete: {
+    ...ui.btnIcon, background: C.dangerTint, color: C.danger,
+    border: `1px solid ${C.dangerBorder}`,
+  },
+  matrixWrap: { ...ui.card, padding: "20px" },
   matrix: { width: "100%", borderCollapse: "collapse", minWidth: 700 },
-  mth: { padding: "12px 16px", textAlign: "center" as const, fontSize: 11, fontWeight: 700,
-    color: "#6B7280", textTransform: "uppercase" as const, letterSpacing: "0.05em",
-    borderBottom: "1px solid rgba(255,255,255,0.06)", whiteSpace: "nowrap" as const },
-  mtd: { padding: "14px 16px", borderBottom: "1px solid rgba(255,255,255,0.04)", verticalAlign: "middle" as const },
-  mtdCell: { textAlign: "center" as const, transition: "background .15s" },
+  mth: { ...ui.th, padding: "12px 16px", textAlign: "center" },
+  mtd: { padding: "14px 16px", borderBottom: `1px solid ${C.borderSoft}`, verticalAlign: "middle", color: C.text },
+  mtdCell: { textAlign: "center", transition: "background .15s" },
   mtr: { transition: "background .1s" },
 };
 
 /* ── Modal styles ────────────────────────────────── */
 const mo: Record<string, React.CSSProperties> = {
-  overlay: { position: "fixed", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.7)",
-    backdropFilter: "blur(6px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 },
-  card: { background: "#0F172A", border: "1px solid rgba(255,255,255,0.08)",
-    borderRadius: 18, padding: "24px", width: "100%", maxWidth: 480,
-    boxShadow: "0 24px 60px rgba(0,0,0,0.7)", maxHeight: "90vh", overflowY: "auto" },
+  overlay: ui.modalOverlay,
+  card: { ...ui.modalCard, maxWidth: 480, maxHeight: "90vh", overflowY: "auto" },
   header: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 },
-  closeBtn: { background: "rgba(255,255,255,0.05)", border: "none", color: "#9CA3AF",
-    borderRadius: 8, padding: "6px 8px", cursor: "pointer", display: "flex", alignItems: "center" },
-  errorBanner: { background: "rgba(220,38,38,0.12)", border: "1px solid rgba(220,38,38,0.3)",
-    borderRadius: 8, padding: "10px 14px", color: "#FCA5A5", fontSize: 13, marginBottom: 16 },
+  closeBtn: {
+    ...ui.btnIcon, width: 32, height: 32, minHeight: 32,
+    background: C.surfaceAlt, border: `1px solid ${C.border}`, color: C.muted,
+  },
+  errorBanner: {
+    background: C.dangerTint, border: `1px solid ${C.dangerBorder}`,
+    borderRadius: 10, padding: "10px 14px", color: C.danger, fontSize: 13, marginBottom: 16,
+  },
   fieldGroup: { display: "flex", flexDirection: "column", gap: 6 },
-  fieldLabel: { fontSize: 12, fontWeight: 600, color: "#6B7280", letterSpacing: "0.04em" },
-  fieldInput: { background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)",
-    borderRadius: 8, padding: "10px 12px", color: "#E5E7EB", fontSize: 13, outline: "none" },
-  btnToggleAll: { fontSize: 12, fontWeight: 600, color: "#A78BFA",
-    background: "rgba(124,58,237,0.1)", border: "1px solid rgba(124,58,237,0.25)",
-    borderRadius: 6, padding: "4px 10px", cursor: "pointer" },
-  permRow: { display: "flex", alignItems: "center", gap: 10, padding: "10px 12px",
-    background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)",
-    borderRadius: 10, color: "#9CA3AF", fontSize: 13, cursor: "pointer",
-    textAlign: "left" as const, width: "100%", transition: "all .15s" },
-  permRowActive: { background: "rgba(124,58,237,0.08)", border: "1px solid rgba(124,58,237,0.2)", color: "#E5E7EB" },
+  fieldLabel: ui.label,
+  fieldInput: ui.input,
+  btnToggleAll: {
+    fontSize: 12, fontWeight: 600, color: C.primaryStrong,
+    background: C.primaryTint, border: `1px solid ${C.primaryTint2}`,
+    borderRadius: 8, padding: "5px 10px", cursor: "pointer",
+  },
+  permRow: {
+    display: "flex", alignItems: "center", gap: 10, padding: "10px 12px",
+    background: C.surface, border: `1px solid ${C.border}`,
+    borderRadius: 12, color: C.text, fontSize: 13, cursor: "pointer",
+    textAlign: "left", width: "100%", transition: "all .15s",
+  },
+  permRowActive: { background: C.primaryTint, border: `1px solid ${C.primaryTint2}`, color: C.ink },
   actions: { display: "flex", justifyContent: "flex-end", gap: 10, paddingTop: 4 },
-  btnCancel: { background: "rgba(255,255,255,0.05)", color: "#9CA3AF",
-    border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8,
-    padding: "10px 18px", cursor: "pointer", fontWeight: 500, fontSize: 13 },
-  btnSave: { background: "#7C3AED", color: "#fff", border: "none", borderRadius: 8,
-    padding: "10px 20px", cursor: "pointer", fontWeight: 600, fontSize: 13,
-    display: "flex", alignItems: "center" },
+  btnCancel: ui.btnSecondary,
+  btnSave: ui.btnPrimary,
 };
