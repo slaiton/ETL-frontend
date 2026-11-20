@@ -14,7 +14,8 @@ interface NavItem {
   label: string;
   path: string;
   Icon: React.ComponentType<{ size?: number }>;
-  module: ModuleKey | null;
+  /** null = siempre visible; con varios basta con uno */
+  module: ModuleKey | readonly ModuleKey[] | null;
 }
 
 const NAV_ITEMS: NavItem[] = [
@@ -22,7 +23,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Dashboard",                 path: "/",                          Icon: LayoutDashboard, module: "dashboard" },
   { label: "Reportes",                  path: "/reports",                   Icon: TrendingUp,      module: "reports" },
   { label: "Certificados",              path: "/certificates",              Icon: FileText,        module: "certificates" },
-  { label: "Certificados (Básico)",     path: "/certificates/basic",        Icon: FileSearch,      module: "certificates" },
+  { label: "Certificados cliente",      path: "/certificates/basic",        Icon: FileSearch,      module: ["certificates_basic", "certificates"] },
   { label: "Anulación de certificados", path: "/certificates/cancellation", Icon: FileX,           module: "certificates" },
   { label: "Facturas",                  path: "/invoices",                  Icon: Receipt,         module: "invoices" },
   { label: "Usuarios",                  path: "/users",                     Icon: Users,           module: "users" },

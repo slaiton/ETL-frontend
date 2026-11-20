@@ -5,7 +5,8 @@ import type { JSX } from "react";
 
 interface Props {
   children: JSX.Element;
-  module?: ModuleKey;
+  /** Con varios, basta con tener acceso a alguno */
+  module?: ModuleKey | readonly ModuleKey[];
 }
 
 export const PrivateRoute = ({ children, module }: Props) => {

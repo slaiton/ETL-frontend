@@ -15,7 +15,8 @@ interface AuthContextType {
   permissions: ModuleKey[];
   homePage: string;
   user: UserProfile | null;
-  hasAccess: (module: ModuleKey) => boolean;
+  /** Con varios módulos basta con tener acceso a alguno */
+  hasAccess: (module: ModuleKey | readonly ModuleKey[]) => boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
 }
@@ -84,7 +85,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setUser(null);
   };
 
-  const hasAccess = (module: ModuleKey) => permissions.includes(module);
+  const hasAccess = (module: ModuleKey | readonly ModuleKey[]) =>
+    typeof module === "string"
+      ? permissions.includes(module)
+      : module.some((m) => permissions.includes(m));
 
   return (
     <AuthContext.Provider value={{ isAuthenticated, isLoading, roleId, permissions, homePage, user, hasAccess, login, logout }}>

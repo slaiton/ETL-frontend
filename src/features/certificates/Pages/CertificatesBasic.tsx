@@ -4,6 +4,7 @@ import PageHeader from "../../../components/ui/PageHeader";
 import { C, ui } from "../../../shared/styles/ui";
 import type { Certificate } from "../../../models/certificates.model";
 import { useCertificates } from "../hooks/useCertificates";
+import { useAuth } from "../../../shared/context/AuthContext";
 import { getPolicyOptions, type CertificateFilters, type PolicyOption } from "../../../api/certificates";
 
 const PER_PAGE = 20;
@@ -92,6 +93,7 @@ function draftToFilters(draft: FilterDraft, page: number): CertificateFilters {
 
 /* ── Component ───────────────────────────────────────── */
 export default function Certificates() {
+  const { user } = useAuth();
   const [draft, setDraft] = useState<FilterDraft>(EMPTY);
   const [applied, setApplied] = useState<FilterDraft>(EMPTY);
   const [page, setPage] = useState(1);
@@ -138,8 +140,12 @@ export default function Certificates() {
     <div className="app-page" style={st.container}>
       <PageHeader
         icon={<FileSearch size={20} />}
-        title="Consulta de certificados (básica)"
-        subtitle="Búsqueda rápida y descarga de certificados"
+        title="Certificados cliente"
+        subtitle={
+          user?.client?.name
+            ? `Certificados de las pólizas de ${user.client.name}`
+            : "Búsqueda rápida y descarga de certificados"
+        }
       />
 
       {/* ── Panel de filtros ───────────────────────────── */}

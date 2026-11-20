@@ -10,7 +10,8 @@ import "./Home.css";
 
 /* ── Aplicaciones del deck ─────────────────────────────────────────── */
 interface AppShortcut {
-  module: ModuleKey;
+  /** Con varios basta con tener acceso a alguno */
+  module: ModuleKey | readonly ModuleKey[];
   label: string;
   desc: string;
   path: string;
@@ -34,7 +35,7 @@ const APPS: AppShortcut[] = [
     path: "/certificates", Icon: FileText, accent: "#34D399", accent2: "#059669",
   },
   {
-    module: "certificates", label: "Certificados (Básico)", desc: "Consulta y gestión de certificados básicos",
+    module: ["certificates_basic", "certificates"], label: "Certificados cliente", desc: "Certificados de las pólizas del cliente",
     path: "/certificates/basic", Icon: FileSearch, accent: "#2DD4BF", accent2: "#0D9488",
   },
   {

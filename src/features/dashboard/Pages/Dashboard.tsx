@@ -18,6 +18,7 @@ import {
   UserPlus, Send, PenLine, RefreshCw, ArrowRight,
 } from "lucide-react";
 import { useDashboard } from "../hooks/useDashboard";
+import { useAuth } from "../../../shared/context/AuthContext";
 import { useWindowSize } from "../../../hooks/useWindowSize";
 import { useAutoRefresh } from "../../../hooks/useAutoRefresh";
 import PageHeader from "../../../components/ui/PageHeader";
@@ -114,6 +115,12 @@ export default function Dashboard() {
   } = useDashboard();
 
   const { lastUpdated, isRefreshing, manualRefresh } = useAutoRefresh(fetchData, REFRESH_INTERVAL);
+  const { user, hasAccess } = useAuth();
+
+  /* Usuario con cliente asignado: solo rendimiento de certificados de sus
+     pólizas (el backend ya limita los datos; aquí se ocultan las secciones) */
+  const clientName = data.client?.name ?? user?.client?.name ?? null;
+  const isClientView = Boolean(data.client || user?.client);
   const { theme } = useTheme();
   const P = CHART[theme];
   const SERIES = { issued: P.issued, cancelled: P.cancelled, created: P.issued, signed: P.signed, pending: P.pending };
@@ -303,7 +310,11 @@ export default function Dashboard() {
         <PageHeader
           icon={<LayoutDashboard size={20} />}
           title="Dashboard"
-          subtitle="Certificados, facturación y terceros del periodo seleccionado"
+          subtitle={
+            isClientView
+              ? `Rendimiento de certificados${clientName ? ` de ${clientName}` : ""}`
+              : "Certificados, facturación y terceros del periodo seleccionado"
+          }
           actions={
             <div style={st.live}>
               <span style={st.liveDot} className="pulse-dot" />
@@ -342,7 +353,7 @@ export default function Dashboard() {
             </select>
           </label>
           <div style={{ ...st.field, flex: 2, minWidth: 240 }}>
-            <span style={ui.label}>Pólizas / clientes</span>
+            <span style={ui.label}>{isClientView ? "Pólizas" : "Pólizas / clientes"}</span>
             <PolicyMultiSelect options={policies} value={policyIds} onChange={setPolicyIds} />
           </div>
           <button type="submit" style={{ ...ui.btnPrimary, alignSelf: "flex-end", minWidth: isMobile ? "100%" : 150 }} disabled={isRefreshing}>
@@ -366,8 +377,8 @@ export default function Dashboard() {
               icon={<FileWarning size={18} />}
               color={C.warning}
               tint={C.warningTint}
-              action="Ver certificados"
-              onClick={() => navigate("/certificates?invoice=false")}
+              action={hasAccess("certificates") ? "Ver certificados" : undefined}
+              onClick={hasAccess("certificates") ? () => navigate("/certificates?invoice=false") : undefined}
             />
 
             <ChartCard style={span(8)} title="Certificados por periodo" height={chartHeight}>
@@ -383,7 +394,9 @@ export default function Dashboard() {
               subtitle={
                 policyIds.length > 0
                   ? `${policyIds.length} póliza${policyIds.length !== 1 ? "s" : ""} seleccionada${policyIds.length !== 1 ? "s" : ""}`
-                  : "Pólizas vigentes con facturación"
+                  : isClientView
+                    ? `Pólizas vigentes${clientName ? ` de ${clientName}` : ""}`
+                    : "Pólizas vigentes con facturación"
               }
               height={byPolicyHeight}
             >
@@ -395,68 +408,73 @@ export default function Dashboard() {
             </ChartCard>
           </div>
 
-          {/* ── Facturación ───────────────────────── */}
-          <SectionTitle title="Facturación" />
-          <div style={grid} className="grid-responsive">
-            <Kpi style={span(6)} size="lg" label="Valor certificados" value={fmtCurrency(data.general.total_billing)} icon={<Wallet size={18} />} color={C.success} tint={C.successTint} />
-            <Kpi style={span(6)} size="lg" label="Valor facturas" value={fmtCurrency(data.invoices.total_billing)} icon={<Receipt size={18} />} color={C.primaryStrong} tint={C.primaryTint} />
-          </div>
+          {/* Facturación y terceros: solo usuarios internos (sin cliente) */}
+          {!isClientView && (
+            <>
+            {/* ── Facturación ───────────────────────── */}
+            <SectionTitle title="Facturación" />
+            <div style={grid} className="grid-responsive">
+              <Kpi style={span(6)} size="lg" label="Valor certificados" value={fmtCurrency(data.general.total_billing)} icon={<Wallet size={18} />} color={C.success} tint={C.successTint} />
+              <Kpi style={span(6)} size="lg" label="Valor facturas" value={fmtCurrency(data.invoices.total_billing)} icon={<Receipt size={18} />} color={C.primaryStrong} tint={C.primaryTint} />
+            </div>
 
-          {/* ── Terceros ──────────────────────────── */}
-          <SectionTitle
-            title="Terceros"
-            hint={
-              policyIds.length > 0
-                ? "Nuevos y notificados incluyen todos los clientes; las firmas usan los clientes de las pólizas seleccionadas."
-                : undefined
-            }
-          />
-          <div style={grid} className="grid-responsive">
-            <Kpi style={span(4)} label="Nuevos terceros" value={fmtNumber(data.entities_general.total_created)} icon={<UserPlus size={18} />} color={C.violet} tint={C.violetTint} />
-            <Kpi style={span(4)} label="Notificados" value={fmtNumber(data.entities_general.total_sent)} icon={<Send size={18} />} color={C.primaryStrong} tint={C.primaryTint} />
-            <Kpi
-              style={span(4)}
-              label="Firmados"
-              value={fmtNumber(data.signatures_total ?? data.entities_general.total_signed)}
-              hint={data.signatures_total != null ? "Terceros que firmaron en el periodo, sin importar cuándo se crearon" : undefined}
-              icon={<PenLine size={18} />}
-              color={C.success}
-              tint={C.successTint}
+            {/* ── Terceros ──────────────────────────── */}
+            <SectionTitle
+              title="Terceros"
+              hint={
+                policyIds.length > 0
+                  ? "Nuevos y notificados incluyen todos los clientes; las firmas usan los clientes de las pólizas seleccionadas."
+                  : undefined
+              }
             />
+            <div style={grid} className="grid-responsive">
+              <Kpi style={span(4)} label="Nuevos terceros" value={fmtNumber(data.entities_general.total_created)} icon={<UserPlus size={18} />} color={C.violet} tint={C.violetTint} />
+              <Kpi style={span(4)} label="Notificados" value={fmtNumber(data.entities_general.total_sent)} icon={<Send size={18} />} color={C.primaryStrong} tint={C.primaryTint} />
+              <Kpi
+                style={span(4)}
+                label="Firmados"
+                value={fmtNumber(data.signatures_total ?? data.entities_general.total_signed)}
+                hint={data.signatures_total != null ? "Terceros que firmaron en el periodo, sin importar cuándo se crearon" : undefined}
+                icon={<PenLine size={18} />}
+                color={C.success}
+                tint={C.successTint}
+              />
 
-            <ChartCard
-              style={span(8)}
-              title="Tendencia de firmas"
-              subtitle="Firmas por fecha de firma; no depende de la fecha de creación del tercero"
-              height={chartHeight}
-            >
-              {entLabels.length > 0 ? (
-                <Line data={signaturesData} options={lineOptions} />
-              ) : (
-                <EmptyChart text="Sin terceros creados ni firmas en el periodo" />
-              )}
-            </ChartCard>
-            <ChartCard style={span(4)} title="Estado de firma" subtitle="Terceros creados en el periodo" height={chartHeight}>
-              {data.entities_general.total_created > 0 ? (
-                <Doughnut data={signatureStatusData} options={doughnutOptions} />
-              ) : (
-                <EmptyChart text="Sin terceros creados en el periodo" />
-              )}
-            </ChartCard>
+              <ChartCard
+                style={span(8)}
+                title="Tendencia de firmas"
+                subtitle="Firmas por fecha de firma; no depende de la fecha de creación del tercero"
+                height={chartHeight}
+              >
+                {entLabels.length > 0 ? (
+                  <Line data={signaturesData} options={lineOptions} />
+                ) : (
+                  <EmptyChart text="Sin terceros creados ni firmas en el periodo" />
+                )}
+              </ChartCard>
+              <ChartCard style={span(4)} title="Estado de firma" subtitle="Terceros creados en el periodo" height={chartHeight}>
+                {data.entities_general.total_created > 0 ? (
+                  <Doughnut data={signatureStatusData} options={doughnutOptions} />
+                ) : (
+                  <EmptyChart text="Sin terceros creados en el periodo" />
+                )}
+              </ChartCard>
 
-            <ChartCard
-              style={span(12)}
-              title="Firmas por cliente"
-              subtitle="Terceros que autorizaron firma para cada cliente en el periodo"
-              height={signaturesByClientHeight}
-            >
-              {hasSignatures ? (
-                <Bar data={signaturesByClientData} options={byPolicyOptions} />
-              ) : (
-                <EmptyChart text="Sin firmas registradas para estos clientes en el periodo" />
-              )}
-            </ChartCard>
-          </div>
+              <ChartCard
+                style={span(12)}
+                title="Firmas por cliente"
+                subtitle="Terceros que autorizaron firma para cada cliente en el periodo"
+                height={signaturesByClientHeight}
+              >
+                {hasSignatures ? (
+                  <Bar data={signaturesByClientData} options={byPolicyOptions} />
+                ) : (
+                  <EmptyChart text="Sin firmas registradas para estos clientes en el periodo" />
+                )}
+              </ChartCard>
+            </div>
+            </>
+          )}
         </div>
       </div>
     </div>

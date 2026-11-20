@@ -38,7 +38,7 @@ export default function AppRouter() {
           }
           />
           <Route path="/certificates/basic" element={
-            <PrivateRoute module="certificates"><CertificatesBasic /></PrivateRoute>
+            <PrivateRoute module={["certificates_basic", "certificates"]}><CertificatesBasic /></PrivateRoute>
           } />
           <Route path="/invoices" element={
             <PrivateRoute module="invoices"><Invoices /></PrivateRoute>
