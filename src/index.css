@@ -261,6 +261,11 @@ option:checked {
   to { transform: rotate(360deg); }
 }
 
+/* Ícono girando mientras algo carga (p. ej. RefreshCw) */
+.spin {
+  animation: spin 0.8s linear infinite;
+}
+
 @keyframes pulse-ring {
   0%, 100% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.4; transform: scale(1.4); }

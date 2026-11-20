@@ -24,11 +24,20 @@ export interface CertificatesIndicatorByPolicy {
   issued: number;
 }
 
+/** Terceros que autorizaron firma para un cliente (signature_history_entities) */
+export interface SignaturesByClient {
+  beneficiary_id: number;
+  name: string;
+  policies: string[];
+  signed: number;
+}
+
 export interface CertificatesResponse {
   invoices: CertificatesIndicator;
   general: CertificatesIndicator;
   period: CertificatesIndicatorByPeriod[];
   policies: CertificatesIndicatorByPolicy[];
+  signatures_by_client: SignaturesByClient[];
   entities_general: EntitiesGeneral;
   entities_period_created: EntitiesPeriod[];
   entities_period_signed: EntitiesPeriod[];

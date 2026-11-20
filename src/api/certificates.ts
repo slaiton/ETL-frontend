@@ -4,6 +4,38 @@ export interface PolicyOption {
   policy_id: number;
   external_code: string;
   beneficiary_name: string | null;
+  beneficiary_id?: number | null;
+}
+
+/* ── Refresco desde producción ─────────────────────────── */
+export type RefreshStatus = "updated" | "not_found" | "not_in_dwh";
+
+export interface RefreshRow {
+  id: number;
+  status: RefreshStatus;
+  /** Campos de facturación que cambiaron: bill_url, factus_bill_consecutive, billing_price, deleted_at */
+  changed: string[];
+  invoiced_now?: boolean;
+  bill_url?: string | null;
+  factus_bill_consecutive?: string | null;
+}
+
+export interface RefreshResponse {
+  summary: {
+    requested: number;
+    updated: number;
+    with_changes: number;
+    invoiced_now: number;
+    not_found: number;
+    not_in_dwh: number;
+  };
+  data: RefreshRow[];
+}
+
+/** Relee los certificados desde producción y actualiza el DWH (incluida la facturación). */
+export async function refreshCertificates(ids: number[]): Promise<RefreshResponse> {
+  const response = await axiosClient.post<RefreshResponse>("/certificates/refresh", { ids });
+  return response.data;
 }
 
 export interface CertificateFilters {

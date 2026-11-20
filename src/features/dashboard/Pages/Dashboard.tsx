@@ -21,6 +21,7 @@ import { useDashboard } from "../hooks/useDashboard";
 import { useWindowSize } from "../../../hooks/useWindowSize";
 import { useAutoRefresh } from "../../../hooks/useAutoRefresh";
 import PageHeader from "../../../components/ui/PageHeader";
+import PolicyMultiSelect from "../../../components/ui/PolicyMultiSelect";
 import { C, FONT_DISPLAY, ui } from "../../../shared/styles/ui";
 import { useTheme, type Theme } from "../../../shared/theme/theme";
 
@@ -104,8 +105,8 @@ export default function Dashboard() {
     setEndDate,
     period,
     setPeriod,
-    policy_id,
-    setPolicy,
+    policyIds,
+    setPolicyIds,
     loading,
     fetchData,
     policies,
@@ -147,11 +148,13 @@ export default function Dashboard() {
 
   /* ── Datos de las gráficas ────────────────────────── */
   const periodLabels = data?.period?.map((p) => p.period);
-  const entLabels = data?.entities_period_created?.map((e) => e.date) ?? [];
-  const entCreated = data?.entities_period_created?.map((e) => e.total) ?? [];
-  const entSigned = entLabels.map(
-    (d) => data?.entities_period_signed?.find((s) => s.date === d)?.total ?? 0,
-  );
+  /* Tendencia de firmas: fechas de terceros creados Y de firmas, para que la
+     tendencia se vea aunque en el periodo no se haya creado ningún tercero */
+  const createdByDate = new Map((data?.entities_period_created ?? []).map((e) => [e.date, e.total]));
+  const signedByDate = new Map((data?.entities_period_signed ?? []).map((e) => [e.date, e.total]));
+  const entLabels = [...new Set([...createdByDate.keys(), ...signedByDate.keys()])].sort();
+  const entCreated = entLabels.map((d) => createdByDate.get(d) ?? 0);
+  const entSigned = entLabels.map((d) => signedByDate.get(d) ?? 0);
 
   const periodData = {
     labels: periodLabels,
@@ -213,6 +216,24 @@ export default function Dashboard() {
     },
   };
   const byPolicyHeight = Math.max(240, policiesByCompany.length * 46);
+
+  const signaturesByClient = data.signatures_by_client ?? [];
+  const signaturesByClientData = {
+    labels: signaturesByClient.map((c) =>
+      c.policies.length ? [c.name, c.policies.join(" · ")] : c.name,
+    ),
+    datasets: [
+      {
+        label: "Terceros que firmaron",
+        data: signaturesByClient.map((c) => c.signed),
+        backgroundColor: SERIES.signed,
+        borderRadius: 6,
+        maxBarThickness: 22,
+      },
+    ],
+  };
+  const signaturesByClientHeight = Math.max(200, signaturesByClient.length * 46);
+  const hasSignatures = signaturesByClient.some((c) => c.signed > 0);
 
   const signaturesData = {
     labels: entLabels,
@@ -320,17 +341,10 @@ export default function Dashboard() {
               <option value="month">Mes</option>
             </select>
           </label>
-          <label style={{ ...st.field, flex: 2, minWidth: 220 }}>
-            <span style={ui.label}>Cliente</span>
-            <select value={policy_id} onChange={(e) => setPolicy(e.target.value)} style={ui.input}>
-              <option value="">Todos</option>
-              {policies.map((p) => (
-                <option key={p.policy_id} value={String(p.policy_id)}>
-                  {p.beneficiary_name ? `${p.beneficiary_name} — ${p.external_code}` : p.external_code}
-                </option>
-              ))}
-            </select>
-          </label>
+          <div style={{ ...st.field, flex: 2, minWidth: 240 }}>
+            <span style={ui.label}>Pólizas / clientes</span>
+            <PolicyMultiSelect options={policies} value={policyIds} onChange={setPolicyIds} />
+          </div>
           <button type="submit" style={{ ...ui.btnPrimary, alignSelf: "flex-end", minWidth: isMobile ? "100%" : 150 }} disabled={isRefreshing}>
             Aplicar filtros
           </button>
@@ -363,7 +377,16 @@ export default function Dashboard() {
               <Pie data={distributionData} options={pieOptions} />
             </ChartCard>
 
-            <ChartCard style={span(12)} title="Certificados emitidos por póliza" subtitle="Pólizas vigentes con facturación" height={byPolicyHeight}>
+            <ChartCard
+              style={span(12)}
+              title="Certificados emitidos por póliza"
+              subtitle={
+                policyIds.length > 0
+                  ? `${policyIds.length} póliza${policyIds.length !== 1 ? "s" : ""} seleccionada${policyIds.length !== 1 ? "s" : ""}`
+                  : "Pólizas vigentes con facturación"
+              }
+              height={byPolicyHeight}
+            >
               {policiesByCompany.length > 0 ? (
                 <Bar data={byPolicyData} options={byPolicyOptions} />
               ) : (
@@ -380,17 +403,41 @@ export default function Dashboard() {
           </div>
 
           {/* ── Terceros ──────────────────────────── */}
-          <SectionTitle title="Terceros" />
+          <SectionTitle
+            title="Terceros"
+            hint={policyIds.length > 0 ? "Los indicadores de terceros son de todos los clientes; «Firmas por cliente» sí usa el filtro de pólizas." : undefined}
+          />
           <div style={grid} className="grid-responsive">
             <Kpi style={span(4)} label="Nuevos terceros" value={fmtNumber(data.entities_general.total_created)} icon={<UserPlus size={18} />} color={C.violet} tint={C.violetTint} />
             <Kpi style={span(4)} label="Notificados" value={fmtNumber(data.entities_general.total_sent)} icon={<Send size={18} />} color={C.primaryStrong} tint={C.primaryTint} />
             <Kpi style={span(4)} label="Firmados" value={fmtNumber(data.entities_general.total_signed)} icon={<PenLine size={18} />} color={C.success} tint={C.successTint} />
 
             <ChartCard style={span(8)} title="Tendencia de firmas" height={chartHeight}>
-              <Line data={signaturesData} options={lineOptions} />
+              {entLabels.length > 0 ? (
+                <Line data={signaturesData} options={lineOptions} />
+              ) : (
+                <EmptyChart text="Sin terceros creados ni firmas en el periodo" />
+              )}
             </ChartCard>
-            <ChartCard style={span(4)} title="Estado de firma" height={chartHeight}>
-              <Doughnut data={signatureStatusData} options={doughnutOptions} />
+            <ChartCard style={span(4)} title="Estado de firma" subtitle="Terceros creados en el periodo" height={chartHeight}>
+              {data.entities_general.total_created > 0 ? (
+                <Doughnut data={signatureStatusData} options={doughnutOptions} />
+              ) : (
+                <EmptyChart text="Sin terceros creados en el periodo" />
+              )}
+            </ChartCard>
+
+            <ChartCard
+              style={span(12)}
+              title="Firmas por cliente"
+              subtitle="Terceros que autorizaron firma para cada cliente en el periodo"
+              height={signaturesByClientHeight}
+            >
+              {hasSignatures ? (
+                <Bar data={signaturesByClientData} options={byPolicyOptions} />
+              ) : (
+                <EmptyChart text="Sin firmas registradas para estos clientes en el periodo" />
+              )}
             </ChartCard>
           </div>
         </div>
@@ -401,12 +448,15 @@ export default function Dashboard() {
 
 /* ── Sub-componentes ──────────────────────────────── */
 
-function SectionTitle({ title }: { title: string }) {
+function SectionTitle({ title, hint }: { title: string; hint?: string }) {
   return (
-    <h2 style={st.sectionTitle}>
-      <span style={st.sectionBar} />
-      {title}
-    </h2>
+    <div style={{ margin: "28px 0 12px" }}>
+      <h2 style={{ ...st.sectionTitle, margin: 0 }}>
+        <span style={st.sectionBar} />
+        {title}
+      </h2>
+      {hint && <p style={st.sectionHint}>{hint}</p>}
+    </div>
   );
 }
 
@@ -538,6 +588,7 @@ const st: Record<string, React.CSSProperties> = {
     color: C.ink,
   },
   sectionBar: { width: 4, height: 18, borderRadius: 4, background: C.gradient, display: "inline-block" },
+  sectionHint: { margin: "4px 0 0 14px", fontSize: 12, color: C.muted },
 
   kpi: {
     padding: "16px 18px",

@@ -1,0 +1,210 @@
+/* ── Selector múltiple de pólizas ───────────────────────── */
+.pms {
+  position: relative;
+  width: 100%;
+}
+
+.pms__trigger {
+  width: 100%;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--c-border);
+  background: var(--c-surface-alt);
+  color: var(--c-ink);
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.pms__trigger:hover {
+  border-color: var(--c-border-strong);
+}
+
+.pms__trigger[aria-expanded="true"],
+.pms__trigger:focus-visible {
+  outline: none;
+  border-color: var(--c-primary);
+  box-shadow: 0 0 0 3px rgba(0, 135, 246, 0.15);
+}
+
+.pms__summary {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pms__count {
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--brand-gradient);
+}
+
+.pms__chevron {
+  color: var(--c-muted);
+  flex-shrink: 0;
+  transition: transform 0.15s;
+}
+
+.pms__trigger[aria-expanded="true"] .pms__chevron {
+  transform: rotate(180deg);
+}
+
+.pms__panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 40;
+  width: max(100%, 320px);
+  max-width: calc(100vw - 32px);
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: 14px;
+  box-shadow: var(--c-shadow-lg);
+  overflow: hidden;
+  animation: pms-in 0.12s ease-out;
+}
+
+.pms__search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--c-border-soft);
+  color: var(--c-faint);
+}
+
+.pms__search input {
+  flex: 1;
+  min-width: 0;
+  border: none !important;
+  outline: none;
+  box-shadow: none !important;
+  background: transparent !important;
+  color: var(--c-ink);
+  font: inherit;
+  font-size: 13px;
+}
+
+.pms__clear-q {
+  border: none;
+  background: none;
+  padding: 2px;
+  color: var(--c-muted);
+  cursor: pointer;
+  display: inline-flex;
+}
+
+.pms__bulk {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--c-border-soft);
+}
+
+.pms__bulk button {
+  border: none;
+  background: none;
+  padding: 4px 8px;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--c-primary-strong);
+  cursor: pointer;
+}
+
+.pms__bulk button:hover:not(:disabled) {
+  background: var(--c-primary-tint);
+}
+
+.pms__bulk button:disabled {
+  color: var(--c-faint);
+  cursor: default;
+}
+
+.pms__list {
+  list-style: none;
+  margin: 0;
+  padding: 6px;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.pms__option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--c-text);
+}
+
+.pms__option:hover {
+  background: var(--c-row-hover);
+}
+
+.pms__option.is-selected {
+  background: var(--c-primary-tint);
+  color: var(--c-ink);
+}
+
+.pms__option input {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  accent-color: #0087f6;
+  cursor: pointer;
+}
+
+.pms__name {
+  flex: 1;
+  min-width: 0;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pms__code {
+  font-size: 12px;
+  color: var(--c-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.pms__empty {
+  padding: 16px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--c-muted);
+}
+
+.pms__footer {
+  padding: 8px 12px;
+  border-top: 1px solid var(--c-border-soft);
+  font-size: 12px;
+  color: var(--c-muted);
+}
+
+@keyframes pms-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: none; }
+}

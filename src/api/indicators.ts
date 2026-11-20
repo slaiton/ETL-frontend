@@ -17,23 +17,26 @@ export async function getCertificates(
   start_date: string,
   end_date: string,
   period: string,
-  policy_id?: string
+  policyIds: number[] = []
 ): Promise<CertificatesResponse | null> {
   try {
-    const params: Record<string, string> = {
+    const params: Record<string, string | number[]> = {
       start_date,
       end_date,
       period,
     };
 
-    if (policy_id) {
-      params.policy_id = policy_id;
+    // Sin pólizas = todas las vigentes con facturación
+    if (policyIds.length > 0) {
+      params.policy_ids = policyIds;
     }
 
     const response = await axiosClient.get<CertificatesResponse>(
       "/indicators/certificates",
       {
-        params: params,
+        params,
+        // FastAPI espera ?policy_ids=1&policy_ids=2 (sin corchetes)
+        paramsSerializer: { indexes: null },
       }
     );
 

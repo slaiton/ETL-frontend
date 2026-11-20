@@ -32,6 +32,7 @@ export const initialDashboardData: CertificatesResponse = {
   entities_period_signed: [],
   period: [],
   policies: [],
+  signatures_by_client: [],
 };
 
 export function useDashboard() {
@@ -39,7 +40,8 @@ export function useDashboard() {
   const [startDate, setStartDate] = useState(defaultStart);
   const [endDate, setEndDate] = useState(today);
   const [period, setPeriod] = useState("day");
-  const [policy_id, setPolicy] = useState("");
+  /** Pólizas seleccionadas en el filtro; vacío = todas las vigentes */
+  const [policyIds, setPolicyIds] = useState<number[]>([]);
   const [loading, setLoading] = useState(false);
   const [policies, setPolicies] = useState<PolicyOption[]>([]);
 
@@ -55,7 +57,7 @@ export function useDashboard() {
         startDate,
         endDate,
         period,
-        policy_id,
+        policyIds,
       );
       if (response) {
         setData({
@@ -63,6 +65,7 @@ export function useDashboard() {
           general: response.general ?? initialDashboardData.general,
           period: response.period ?? [],
           policies: response.policies ?? [],
+          signatures_by_client: response.signatures_by_client ?? [],
           entities_general:
             response.entities_general ?? initialDashboardData.entities_general,
           entities_period_created: response.entities_period_created ?? [],
@@ -86,8 +89,8 @@ export function useDashboard() {
     setEndDate,
     period,
     setPeriod,
-    policy_id,
-    setPolicy,
+    policyIds,
+    setPolicyIds,
     loading,
     fetchData,
     policies,
