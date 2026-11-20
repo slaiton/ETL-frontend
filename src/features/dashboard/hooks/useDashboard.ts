@@ -66,6 +66,7 @@ export function useDashboard() {
           period: response.period ?? [],
           policies: response.policies ?? [],
           signatures_by_client: response.signatures_by_client ?? [],
+          signatures_total: response.signatures_total ?? null,
           entities_general:
             response.entities_general ?? initialDashboardData.entities_general,
           entities_period_created: response.entities_period_created ?? [],

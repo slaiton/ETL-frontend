@@ -38,6 +38,8 @@ export interface CertificatesResponse {
   period: CertificatesIndicatorByPeriod[];
   policies: CertificatesIndicatorByPolicy[];
   signatures_by_client: SignaturesByClient[];
+  /** Terceros distintos que firmaron en el periodo, por fecha de firma; null = no disponible */
+  signatures_total?: number | null;
   entities_general: EntitiesGeneral;
   entities_period_created: EntitiesPeriod[];
   entities_period_signed: EntitiesPeriod[];

@@ -248,7 +248,7 @@ export default function Dashboard() {
         pointRadius: 2,
       },
       {
-        label: "Terceros firmados",
+        label: "Firmas (por fecha de firma)",
         data: entSigned,
         borderColor: SERIES.signed,
         backgroundColor: P.signedFill,
@@ -405,14 +405,31 @@ export default function Dashboard() {
           {/* ── Terceros ──────────────────────────── */}
           <SectionTitle
             title="Terceros"
-            hint={policyIds.length > 0 ? "Los indicadores de terceros son de todos los clientes; «Firmas por cliente» sí usa el filtro de pólizas." : undefined}
+            hint={
+              policyIds.length > 0
+                ? "Nuevos y notificados incluyen todos los clientes; las firmas usan los clientes de las pólizas seleccionadas."
+                : undefined
+            }
           />
           <div style={grid} className="grid-responsive">
             <Kpi style={span(4)} label="Nuevos terceros" value={fmtNumber(data.entities_general.total_created)} icon={<UserPlus size={18} />} color={C.violet} tint={C.violetTint} />
             <Kpi style={span(4)} label="Notificados" value={fmtNumber(data.entities_general.total_sent)} icon={<Send size={18} />} color={C.primaryStrong} tint={C.primaryTint} />
-            <Kpi style={span(4)} label="Firmados" value={fmtNumber(data.entities_general.total_signed)} icon={<PenLine size={18} />} color={C.success} tint={C.successTint} />
+            <Kpi
+              style={span(4)}
+              label="Firmados"
+              value={fmtNumber(data.signatures_total ?? data.entities_general.total_signed)}
+              hint={data.signatures_total != null ? "Terceros que firmaron en el periodo, sin importar cuándo se crearon" : undefined}
+              icon={<PenLine size={18} />}
+              color={C.success}
+              tint={C.successTint}
+            />
 
-            <ChartCard style={span(8)} title="Tendencia de firmas" height={chartHeight}>
+            <ChartCard
+              style={span(8)}
+              title="Tendencia de firmas"
+              subtitle="Firmas por fecha de firma; no depende de la fecha de creación del tercero"
+              height={chartHeight}
+            >
               {entLabels.length > 0 ? (
                 <Line data={signaturesData} options={lineOptions} />
               ) : (
@@ -468,11 +485,12 @@ interface KpiProps {
   tint: string;
   size?: "md" | "lg";
   action?: string;
+  hint?: string;
   onClick?: () => void;
   style?: React.CSSProperties;
 }
 
-function Kpi({ label, value, icon, color, tint, size = "md", action, onClick, style }: KpiProps) {
+function Kpi({ label, value, icon, color, tint, size = "md", action, hint, onClick, style }: KpiProps) {
   const content = (
     <>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
@@ -480,6 +498,7 @@ function Kpi({ label, value, icon, color, tint, size = "md", action, onClick, st
         <span style={{ ...st.kpiIcon, color, background: tint }}>{icon}</span>
       </div>
       <div style={{ ...st.kpiValue, fontSize: size === "lg" ? 30 : 28 }}>{value}</div>
+      {hint && <span style={st.kpiHint}>{hint}</span>}
       {action && (
         <span style={{ ...st.kpiAction, color }}>
           {action} <ArrowRight size={13} />
@@ -625,6 +644,7 @@ const st: Record<string, React.CSSProperties> = {
     overflowWrap: "anywhere",
   },
   kpiAction: { display: "inline-flex", alignItems: "center", gap: 4, fontSize: 12, fontWeight: 700 },
+  kpiHint: { fontSize: 12, color: C.muted, lineHeight: 1.4 },
 
   chartTitle: { margin: 0, fontFamily: FONT_DISPLAY, fontSize: 14, fontWeight: 700, color: C.ink },
   chartSubtitle: { margin: "2px 0 0", fontSize: 12, color: C.muted },
