@@ -33,8 +33,13 @@ export interface RefreshResponse {
 }
 
 /** Relee los certificados desde producción y actualiza el DWH (incluida la facturación). */
-export async function refreshCertificates(ids: number[]): Promise<RefreshResponse> {
-  const response = await axiosClient.post<RefreshResponse>("/certificates/refresh", { ids });
+export async function refreshCertificates(
+  ids: number[],
+): Promise<RefreshResponse> {
+  const response = await axiosClient.post<RefreshResponse>(
+    "/certificates/refresh",
+    { ids },
+  );
   return response.data;
 }
 
@@ -62,7 +67,9 @@ export async function getPolicyOptions(): Promise<PolicyOption[]> {
   }
 }
 
-export async function getCertificates(filters: CertificateFilters = {}): Promise<any> {
+export async function getCertificates(
+  filters: CertificateFilters = {},
+): Promise<any> {
   const params: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(filters)) {
     if (v !== undefined && v !== "" && v !== null) params[k] = v;
@@ -74,4 +81,51 @@ export async function getCertificates(filters: CertificateFilters = {}): Promise
     console.error("❌ Error en getCertificates:", error);
     return null;
   }
+}
+
+export async function getAllCertificates(
+  filters: CertificateFilters = {},
+): Promise<any[]> {
+  const perPage = filters.per_page ?? 20;
+  const firstPage = await getCertificates({
+    ...filters,
+    page: 1,
+    per_page: perPage,
+  });
+
+  if (!Array.isArray(firstPage?.data)) {
+    throw new Error("No fue posible consultar los certificados.");
+  }
+
+  const totalPages =
+    firstPage.total_pages ??
+    (typeof firstPage.total === "number"
+      ? Math.ceil(firstPage.total / perPage)
+      : undefined);
+
+  if (!Number.isInteger(totalPages) || totalPages < 1) {
+    throw new Error(
+      "La respuesta no contiene información de paginación válida.",
+    );
+  }
+
+  const certificates = [...firstPage.data];
+
+  for (let page = 2; page <= totalPages; page++) {
+    const response = await getCertificates({
+      ...filters,
+      page,
+      per_page: perPage,
+    });
+
+    if (!Array.isArray(response?.data)) {
+      throw new Error(
+        `No fue posible consultar la página ${page} de certificados.`,
+      );
+    }
+
+    certificates.push(...response.data);
+  }
+
+  return certificates;
 }
