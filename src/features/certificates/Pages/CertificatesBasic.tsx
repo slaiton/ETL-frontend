@@ -1,11 +1,24 @@
 import { useEffect, useState } from "react";
-import { FileSearch, Search, X, Download, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  FileSearch,
+  Search,
+  X,
+  Download,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import PageHeader from "../../../components/ui/PageHeader";
 import { C, ui } from "../../../shared/styles/ui";
 import type { Certificate } from "../../../models/certificates.model";
 import { useCertificates } from "../hooks/useCertificates";
 import { useAuth } from "../../../shared/context/AuthContext";
-import { getPolicyOptions, type CertificateFilters, type PolicyOption } from "../../../api/certificates";
+import { escapeCsvCell } from "../../../shared/utils/csv";
+import {
+  getAllCertificates,
+  getPolicyOptions,
+  type CertificateFilters,
+  type PolicyOption,
+} from "../../../api/certificates";
 
 const PER_PAGE = 20;
 const formatDate = (d: Date) => d.toISOString().split("T")[0];
@@ -22,7 +35,7 @@ function exportToExcel(data: Certificate[]) {
     "Inicio",
     "Fin",
     "Cliente",
-    "Valor"
+    "Valor",
   ];
 
   const rows = data.map((r) => [
@@ -38,15 +51,12 @@ function exportToExcel(data: Certificate[]) {
     r.billing_price ?? "",
   ]);
 
-  const esc = (v: unknown) =>
-    `"${String(v ?? "").replace(/"/g, '""')}"`;
-
   const csv = [headers, ...rows]
-    .map((r) => r.map(esc).join(","))
+    .map((r) => r.map(escapeCsvCell).join(","))
     .join("\r\n");
 
   const blob = new Blob(["﻿" + csv], {
-    type: "text/csv;charset=utf-8;"
+    type: "text/csv;charset=utf-8;",
   });
 
   const url = URL.createObjectURL(blob);
@@ -73,21 +83,29 @@ interface FilterDraft {
 }
 
 const EMPTY: FilterDraft = {
-  id: "", certificate: "", waybill: "", factus_bill_consecutive: "",
-  policy_id: "", plaque: "", start_date: "", end_date: "", is_invoiced: "",
+  id: "",
+  certificate: "",
+  waybill: "",
+  factus_bill_consecutive: "",
+  policy_id: "",
+  plaque: "",
+  start_date: "",
+  end_date: "",
+  is_invoiced: "",
 };
 
 function draftToFilters(draft: FilterDraft, page: number): CertificateFilters {
   const f: CertificateFilters = { page, per_page: PER_PAGE };
-  if (draft.id)                       f.id = Number(draft.id);
-  if (draft.certificate)              f.certificate = draft.certificate;
-  if (draft.waybill)                  f.waybill = draft.waybill;
-  if (draft.factus_bill_consecutive)  f.factus_bill_consecutive = draft.factus_bill_consecutive;
-  if (draft.policy_id)                f.policy_id = Number(draft.policy_id);
-  if (draft.plaque)                   f.plaque = draft.plaque;
-  if (draft.start_date)               f.start_date = draft.start_date;
-  if (draft.end_date)                 f.end_date = draft.end_date;
-  if (draft.is_invoiced !== "")       f.is_invoiced = draft.is_invoiced === "true";
+  if (draft.id) f.id = Number(draft.id);
+  if (draft.certificate) f.certificate = draft.certificate;
+  if (draft.waybill) f.waybill = draft.waybill;
+  if (draft.factus_bill_consecutive)
+    f.factus_bill_consecutive = draft.factus_bill_consecutive;
+  if (draft.policy_id) f.policy_id = Number(draft.policy_id);
+  if (draft.plaque) f.plaque = draft.plaque;
+  if (draft.start_date) f.start_date = draft.start_date;
+  if (draft.end_date) f.end_date = draft.end_date;
+  if (draft.is_invoiced !== "") f.is_invoiced = draft.is_invoiced === "true";
   return f;
 }
 
@@ -98,6 +116,7 @@ export default function Certificates() {
   const [applied, setApplied] = useState<FilterDraft>(EMPTY);
   const [page, setPage] = useState(1);
   const [policyOptions, setPolicyOptions] = useState<PolicyOption[]>([]);
+  const [exporting, setExporting] = useState(false);
 
   const { data, total, totalPages, loading, fetchData } = useCertificates();
 
@@ -107,7 +126,7 @@ export default function Certificates() {
   useEffect(() => {
     fetchData({ page: 1, per_page: PER_PAGE });
     getPolicyOptions().then(setPolicyOptions);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const applySearch = () => {
@@ -128,12 +147,28 @@ export default function Certificates() {
     fetchData(draftToFilters(applied, next));
   };
 
-  const set = (field: keyof FilterDraft) =>
+  const set =
+    (field: keyof FilterDraft) =>
     (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
       setDraft((p) => ({ ...p, [field]: e.target.value }));
 
   const onKey = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") applySearch();
+  };
+
+  const handleExport = async () => {
+    setExporting(true);
+    try {
+      const certificates = await getAllCertificates(draftToFilters(applied, 1));
+      exportToExcel(certificates);
+    } catch (error) {
+      console.error("No fue posible exportar todos los certificados:", error);
+      alert(
+        "No fue posible descargar todos los certificados. Intenta de nuevo.",
+      );
+    } finally {
+      setExporting(false);
+    }
   };
 
   return (
@@ -150,36 +185,47 @@ export default function Certificates() {
 
       {/* ── Panel de filtros ───────────────────────────── */}
       <div style={st.panel}>
-
         {/* Sección Búsqueda */}
         <div style={st.section}>
           <span style={st.sectionLabel}>Búsqueda</span>
           <div style={st.row}>
             <Field label="ID">
               <input
-                type="number" placeholder="Ej: 12345"
-                value={draft.id} onChange={set("id")} onKeyDown={onKey}
+                type="number"
+                placeholder="Ej: 12345"
+                value={draft.id}
+                onChange={set("id")}
+                onKeyDown={onKey}
                 style={st.input}
               />
             </Field>
             <Field label="Certificado">
               <input
-                type="text" placeholder="Consecutivo..."
-                value={draft.certificate} onChange={set("certificate")} onKeyDown={onKey}
+                type="text"
+                placeholder="Consecutivo..."
+                value={draft.certificate}
+                onChange={set("certificate")}
+                onKeyDown={onKey}
                 style={st.input}
               />
             </Field>
             <Field label="Waybill">
               <input
-                type="text" placeholder="Nro. guía..."
-                value={draft.waybill} onChange={set("waybill")} onKeyDown={onKey}
+                type="text"
+                placeholder="Nro. guía..."
+                value={draft.waybill}
+                onChange={set("waybill")}
+                onKeyDown={onKey}
                 style={st.input}
               />
             </Field>
             <Field label="Placa">
               <input
-                type="text" placeholder="Ej: ABC123..."
-                value={draft.plaque} onChange={set("plaque")} onKeyDown={onKey}
+                type="text"
+                placeholder="Ej: ABC123..."
+                value={draft.plaque}
+                onChange={set("plaque")}
+                onKeyDown={onKey}
                 style={st.input}
               />
             </Field>
@@ -202,8 +248,11 @@ export default function Certificates() {
             </Field>
             <Field label="Factura Factus">
               <input
-                type="text" placeholder="Consecutivo factura..."
-                value={draft.factus_bill_consecutive} onChange={set("factus_bill_consecutive")} onKeyDown={onKey}
+                type="text"
+                placeholder="Consecutivo factura..."
+                value={draft.factus_bill_consecutive}
+                onChange={set("factus_bill_consecutive")}
+                onKeyDown={onKey}
                 style={st.input}
               />
             </Field>
@@ -218,19 +267,27 @@ export default function Certificates() {
           <div style={st.row}>
             <Field label="Desde">
               <input
-                type="date" value={draft.start_date} onChange={set("start_date")}
+                type="date"
+                value={draft.start_date}
+                onChange={set("start_date")}
                 style={st.input}
               />
             </Field>
             <Field label="Hasta">
               <input
-                type="date" value={draft.end_date} onChange={set("end_date")}
+                type="date"
+                value={draft.end_date}
+                onChange={set("end_date")}
                 style={st.input}
               />
             </Field>
             <Field label="Facturación">
               <div style={st.selectWrap}>
-                <select value={draft.is_invoiced} onChange={set("is_invoiced")} style={st.select}>
+                <select
+                  value={draft.is_invoiced}
+                  onChange={set("is_invoiced")}
+                  style={st.select}
+                >
                   <option value="">Todos</option>
                   <option value="true">Facturado</option>
                   <option value="false">Sin factura</option>
@@ -244,17 +301,25 @@ export default function Certificates() {
         {/* Acciones */}
         <div style={st.actions}>
           <button onClick={applySearch} disabled={loading} style={st.btnSearch}>
-            {loading ? "Buscando..." : <><Search size={15} /> Buscar</>}
+            {loading ? (
+              "Buscando..."
+            ) : (
+              <>
+                <Search size={15} /> Buscar
+              </>
+            )}
           </button>
           {hasFilters && (
-            <button onClick={clearAll} style={st.btnClear}><X size={15} /> Limpiar</button>
+            <button onClick={clearAll} style={st.btnClear}>
+              <X size={15} /> Limpiar
+            </button>
           )}
           <button
-            onClick={() => exportToExcel(data)}
-            disabled={data.length === 0 || loading}
+            onClick={handleExport}
+            disabled={data.length === 0 || loading || exporting}
             style={st.btnExcel}
           >
-            <Download size={15} /> Excel
+            <Download size={15} /> {exporting ? "Generando Excel..." : "Excel"}
           </button>
         </div>
       </div>
@@ -273,40 +338,69 @@ export default function Certificates() {
         <table style={st.table}>
           <thead>
             <tr style={st.thead}>
-            {["ID","Certificado","Factura","Waybill","Placa","Póliza","Inicio","Fin","Cliente","Valor","Descargar"]
-              .map((h) => <th key={h} style={st.th}>{h}</th>)}
+              {[
+                "ID",
+                "Certificado",
+                "Factura",
+                "Waybill",
+                "Placa",
+                "Póliza",
+                "Inicio",
+                "Fin",
+                "Cliente",
+                "Valor",
+                "Descargar",
+              ].map((h) => (
+                <th key={h} style={st.th}>
+                  {h}
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={11} style={st.noData}>Cargando...</td></tr>
-            ) : data.length === 0 ? (
-              <tr><td colSpan={11} style={st.noData}>Sin resultados</td></tr>
-            ) : data.map((item) => (
-              <tr key={item.id} style={st.tableRow}>
-                <td style={st.td}>{item.id}</td>
-                <td style={st.td}>{item.consecutive}</td>
-                <td style={st.td}>{item.factus_bill_consecutive ?? "—"}</td>
-                <td style={st.td}>{item.waybill ?? "—"}</td>
-                <td style={st.td}>{item.plaque ?? "—"}</td>
-                <td style={st.td}>{item.policy_id ?? "—"}</td>
-                <td style={st.td}>{item.start_at ? item.start_at.split("T")[0] : "—"}</td>
-                <td style={st.td}>{item.end_at ? item.end_at.split("T")[0] : "—"}</td>
-                <td style={st.td}>{item.customer_id ?? "—"}</td>
-                <td style={st.td}>{item.billing_price ?? "—"}</td>
-                <td style={st.td}>
-                  <button
-                    style={st.btnAction}
-                    onClick={() => {
-                      const url = `${import.meta.env.VITE_API_CERTIFICATE_URL}/new_certificates/${btoa(String(item.id))}/download_view`;
-                      window.open(url, "_blank");
-                    }}
-                  >
-                    Descargar
-                  </button>
+              <tr>
+                <td colSpan={11} style={st.noData}>
+                  Cargando...
                 </td>
               </tr>
-            ))}
+            ) : data.length === 0 ? (
+              <tr>
+                <td colSpan={11} style={st.noData}>
+                  Sin resultados
+                </td>
+              </tr>
+            ) : (
+              data.map((item) => (
+                <tr key={item.id} style={st.tableRow}>
+                  <td style={st.td}>{item.id}</td>
+                  <td style={st.td}>{item.consecutive}</td>
+                  <td style={st.td}>{item.factus_bill_consecutive ?? "—"}</td>
+                  <td style={st.td}>{item.waybill ?? "—"}</td>
+                  <td style={st.td}>{item.plaque ?? "—"}</td>
+                  <td style={st.td}>{item.policy_id ?? "—"}</td>
+                  <td style={st.td}>
+                    {item.start_at ? item.start_at.split("T")[0] : "—"}
+                  </td>
+                  <td style={st.td}>
+                    {item.end_at ? item.end_at.split("T")[0] : "—"}
+                  </td>
+                  <td style={st.td}>{item.customer_id ?? "—"}</td>
+                  <td style={st.td}>{item.billing_price ?? "—"}</td>
+                  <td style={st.td}>
+                    <button
+                      style={st.btnAction}
+                      onClick={() => {
+                        const url = `${import.meta.env.VITE_API_CERTIFICATE_URL}/new_certificates/${btoa(String(item.id))}/download_view`;
+                        window.open(url, "_blank");
+                      }}
+                    >
+                      Descargar
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
@@ -314,9 +408,23 @@ export default function Certificates() {
       {/* ── Paginación ─────────────────────────────────── */}
       {totalPages > 1 && (
         <div style={st.pagination}>
-          <button disabled={page <= 1} onClick={() => changePage(page - 1)} style={st.pageBtn}><ChevronLeft size={15} /> Anterior</button>
-          <span style={st.pageInfo}>Página {page} de {totalPages}</span>
-          <button disabled={page >= totalPages} onClick={() => changePage(page + 1)} style={st.pageBtn}>Siguiente <ChevronRight size={15} /></button>
+          <button
+            disabled={page <= 1}
+            onClick={() => changePage(page - 1)}
+            style={st.pageBtn}
+          >
+            <ChevronLeft size={15} /> Anterior
+          </button>
+          <span style={st.pageInfo}>
+            Página {page} de {totalPages}
+          </span>
+          <button
+            disabled={page >= totalPages}
+            onClick={() => changePage(page + 1)}
+            style={st.pageBtn}
+          >
+            Siguiente <ChevronRight size={15} />
+          </button>
         </div>
       )}
     </div>
@@ -324,7 +432,13 @@ export default function Certificates() {
 }
 
 /* ── Field wrapper ───────────────────────────────────── */
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
   return (
     <div style={st.field}>
       <label style={st.fieldLabel}>{label}</label>
@@ -339,23 +453,43 @@ const st: Record<string, React.CSSProperties> = {
 
   panel: {
     ...ui.card,
-    padding: "18px 20px", marginBottom: 16,
-    display: "flex", flexDirection: "column", gap: 16,
+    padding: "18px 20px",
+    marginBottom: 16,
+    display: "flex",
+    flexDirection: "column",
+    gap: 16,
   },
   section: { display: "flex", flexDirection: "column", gap: 10 },
   sectionLabel: ui.sectionLabel,
   row: { display: "flex", flexWrap: "wrap", gap: 12 },
   divider: { height: 1, background: C.borderSoft },
 
-  field: { display: "flex", flexDirection: "column", gap: 6, minWidth: 150, flex: 1 },
+  field: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 6,
+    minWidth: 150,
+    flex: 1,
+  },
   fieldLabel: ui.label,
   input: ui.input,
 
   selectWrap: { position: "relative", display: "flex", alignItems: "center" },
-  select: { ...ui.input, appearance: "none", paddingRight: 32, cursor: "pointer" },
+  select: {
+    ...ui.input,
+    appearance: "none",
+    paddingRight: 32,
+    cursor: "pointer",
+  },
   chevron: { display: "none" }, // la flecha la pone .app-page select
 
-  actions: { display: "flex", gap: 8, alignItems: "center", justifyContent: "flex-end", flexWrap: "wrap" },
+  actions: {
+    display: "flex",
+    gap: 8,
+    alignItems: "center",
+    justifyContent: "flex-end",
+    flexWrap: "wrap",
+  },
   btnSearch: { ...ui.btnPrimary, minWidth: 120 },
   btnClear: ui.btnSecondary,
   btnExcel: ui.btnSuccess,
@@ -369,9 +503,20 @@ const st: Record<string, React.CSSProperties> = {
   tableRow: {},
   td: { ...ui.td, textAlign: "center" },
   noData: ui.noData,
-  btnAction: { ...ui.btnSoft, minHeight: 32, padding: "6px 12px", fontSize: 12 },
+  btnAction: {
+    ...ui.btnSoft,
+    minHeight: 32,
+    padding: "6px 12px",
+    fontSize: 12,
+  },
 
-  pagination: { display: "flex", justifyContent: "center", alignItems: "center", gap: 12, marginTop: 20 },
+  pagination: {
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 12,
+    marginTop: 20,
+  },
   pageBtn: { ...ui.btnSecondary, minHeight: 36, padding: "7px 14px" },
   pageInfo: { fontWeight: 600, color: C.muted, fontSize: 13 },
 };
