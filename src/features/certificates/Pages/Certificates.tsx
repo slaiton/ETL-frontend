@@ -17,6 +17,7 @@ import { C, ui, pill } from "../../../shared/styles/ui";
 import type { Certificate } from "../../../models/certificates.model";
 import { reportInvoice } from "../../../api/invoices";
 import { useCertificates } from "../hooks/useCertificates";
+import { escapeCsvCell } from "../../../shared/utils/csv";
 import {
   getAllCertificates,
   getPolicyOptions,
@@ -58,8 +59,9 @@ function exportToExcel(data: Certificate[]) {
     r.bill_url ?? "",
     r.billing_price ?? "",
   ]);
-  const esc = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
-  const csv = [headers, ...rows].map((r) => r.map(esc).join(",")).join("\r\n");
+  const csv = [headers, ...rows]
+    .map((r) => r.map(escapeCsvCell).join(","))
+    .join("\r\n");
   const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
