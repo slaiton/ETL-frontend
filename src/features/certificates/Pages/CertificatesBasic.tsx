@@ -410,6 +410,7 @@ export default function Certificates() {
                   <td style={st.td}>{item.billing_price ?? "—"}</td>
                   <td style={st.td}>{item.is_cancelled ? "Sí" : "No"}</td>
                   <td style={st.td}>
+                    {/* No se puede descargar un certificado anulado, por eso se deshabilita el botón */}
                     <button
                       style={st.btnAction}
                       disabled={item.is_cancelled}
