@@ -45,6 +45,7 @@ function exportToExcel(data: Certificate[]) {
     "Cliente",
     "URL Factura",
     "Valor",
+    "Anulado",
   ];
   const rows = data.map((r) => [
     r.id,
@@ -58,6 +59,7 @@ function exportToExcel(data: Certificate[]) {
     r.customer_id ?? "",
     r.bill_url ?? "",
     r.billing_price ?? "",
+    r.is_cancelled ? "Sí" : "No",
   ]);
   const csv = [headers, ...rows]
     .map((r) => r.map(escapeCsvCell).join(","))
@@ -82,6 +84,7 @@ interface FilterDraft {
   start_date: string;
   end_date: string;
   is_invoiced: string;
+  is_cancelled: string;
 }
 
 const EMPTY: FilterDraft = {
@@ -94,6 +97,7 @@ const EMPTY: FilterDraft = {
   start_date: "",
   end_date: "",
   is_invoiced: "",
+  is_cancelled: "",
 };
 
 function draftToFilters(draft: FilterDraft, page: number): CertificateFilters {
@@ -108,6 +112,8 @@ function draftToFilters(draft: FilterDraft, page: number): CertificateFilters {
   if (draft.start_date) f.start_date = draft.start_date;
   if (draft.end_date) f.end_date = draft.end_date;
   if (draft.is_invoiced !== "") f.is_invoiced = draft.is_invoiced === "true";
+  if (draft.is_cancelled !== "")
+    f.is_cancelled = draft.is_cancelled === "true";
   return f;
 }
 
@@ -361,6 +367,20 @@ export default function Certificates() {
                 <span style={st.chevron}>▾</span>
               </div>
             </Field>
+            <Field label="Anulación">
+              <div style={st.selectWrap}>
+                <select
+                  value={draft.is_cancelled}
+                  onChange={set("is_cancelled")}
+                  style={st.select}
+                >
+                  <option value="">Todos</option>
+                  <option value="true">Anulados</option>
+                  <option value="false">No anulados</option>
+                </select>
+                <span style={st.chevron}>▾</span>
+              </div>
+            </Field>
           </div>
         </div>
 
@@ -506,6 +526,7 @@ export default function Certificates() {
                 "Cliente",
                 "URL Factura",
                 "Valor",
+                "Anulado",
                 "Descargar",
                 "Enviar factura",
                 "Refrescar",
@@ -519,13 +540,13 @@ export default function Certificates() {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={15} style={st.noData}>
+                <td colSpan={16} style={st.noData}>
                   Cargando...
                 </td>
               </tr>
             ) : data.length === 0 ? (
               <tr>
-                <td colSpan={15} style={st.noData}>
+                <td colSpan={16} style={st.noData}>
                   Sin resultados
                 </td>
               </tr>
@@ -572,6 +593,7 @@ export default function Certificates() {
                     )}
                   </td>
                   <td style={st.td}>{item.billing_price ?? "—"}</td>
+                  <td style={st.td}>{item.is_cancelled ? "Sí" : "No"}</td>
                   <td style={st.td}>
                     <button
                       style={st.btnAction}

@@ -51,6 +51,7 @@ export interface CertificateFilters {
   start_date?: string;
   end_date?: string;
   is_invoiced?: boolean;
+  is_cancelled?: boolean;
   customer_id?: number;
   policy_id?: number;
   plaque?: string;

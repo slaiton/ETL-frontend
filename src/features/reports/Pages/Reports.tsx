@@ -16,6 +16,7 @@ const Reports = () => {
 const [startDate, setStartDate] = useState("");
 const [endDate, setEndDate] = useState("");
 const [policyId, setPolicyId] = useState("");
+const [isCancelled, setIsCancelled] = useState("");
 const [page, setPage] = useState(1);
 const [policies, setPolicies] = useState<PolicyOption[]>([]);
 const [downloading, setDownloading] = useState(false);
@@ -37,6 +38,7 @@ const [downloadError, setDownloadError] = useState("");
       start_date: startDate,
       end_date: endDate,
       policy_id: policyId ? Number(policyId) : undefined,
+      ...(isCancelled === "" ? {} : { is_cancelled: isCancelled === "true" }),
       page: 1,
       per_page: PER_PAGE,
     });
@@ -49,6 +51,7 @@ const [downloadError, setDownloadError] = useState("");
       start_date: startDate,
       end_date: endDate,
       policy_id: policyId ? Number(policyId) : undefined,
+      ...(isCancelled === "" ? {} : { is_cancelled: isCancelled === "true" }),
       page: next,
       per_page: PER_PAGE,
     });
@@ -76,6 +79,7 @@ const [downloadError, setDownloadError] = useState("");
         start_date: startDate,
         end_date: endDate,
         policy_id: policyId ? Number(policyId) : undefined,
+        ...(isCancelled === "" ? {} : { is_cancelled: isCancelled === "true" }),
       });
 
       if (!response) {
@@ -126,7 +130,8 @@ const [downloadError, setDownloadError] = useState("");
     }
   };
 
-  const hasFilters = startDate !== "" || endDate !== "" || policyId !== "";
+  const hasFilters =
+    startDate !== "" || endDate !== "" || policyId !== "" || isCancelled !== "";
   const canDownload = startDate !== "" && endDate !== "" && !downloading;
 
   const columns = data.length > 0 ? Object.keys(data[0]) : [];
@@ -174,6 +179,20 @@ const [downloadError, setDownloadError] = useState("");
                       {policy.external_code} - {policy.beneficiary_name}
                     </option>
                   ))}
+                </select>
+                <span style={st.chevron}>▾</span>
+              </div>
+            </Field>
+            <Field label="Anulación">
+              <div style={st.selectWrap}>
+                <select
+                  value={isCancelled}
+                  onChange={(e) => setIsCancelled(e.target.value)}
+                  style={st.select}
+                >
+                  <option value="">Todos</option>
+                  <option value="true">Anulados</option>
+                  <option value="false">No anulados</option>
                 </select>
                 <span style={st.chevron}>▾</span>
               </div>
@@ -240,7 +259,7 @@ const [downloadError, setDownloadError] = useState("");
                 <tr style={st.thead}>
                   {columns.map((key) => (
                     <th key={key} style={st.th}>
-                      {key}
+                      {key === "is_cancelled" ? "Anulado" : key}
                     </th>
                   ))}
                 </tr>
@@ -251,9 +270,13 @@ const [downloadError, setDownloadError] = useState("");
                   <tr key={index} style={st.tableRow}>
                     {columns.map((key) => (
                       <td key={key} style={st.td}>
-                        {item[key] !== null && item[key] !== undefined && item[key] !== ""
-                          ? String(item[key])
-                          : <span style={{ color: C.faint }}>—</span>}
+                        {key === "is_cancelled"
+                          ? item[key]
+                            ? "Sí"
+                            : "No"
+                          : item[key] !== null && item[key] !== undefined && item[key] !== ""
+                            ? String(item[key])
+                            : <span style={{ color: C.faint }}>—</span>}
                       </td>
                     ))}
                   </tr>
