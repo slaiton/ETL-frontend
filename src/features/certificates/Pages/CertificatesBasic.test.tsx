@@ -4,6 +4,7 @@ import {
   fireEvent,
   render,
   screen,
+  within,
   waitFor,
 } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -158,6 +159,26 @@ describe("Certificados cliente: anulación", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("Sí")).toBeInTheDocument();
     expect(screen.getByText("No")).toBeInTheDocument();
+  });
+
+  it("bloquea la descarga de anulados y la mantiene para vigentes", async () => {
+    await renderPage();
+
+    const cancelledRow = screen.getByText("CERT-101").closest("tr");
+    const activeRow = screen.getByText("CERT-102").closest("tr");
+
+    expect(cancelledRow).not.toBeNull();
+    expect(activeRow).not.toBeNull();
+    expect(
+      within(cancelledRow as HTMLTableRowElement).getByRole("button", {
+        name: "Descargar",
+      }),
+    ).toBeDisabled();
+    expect(
+      within(activeRow as HTMLTableRowElement).getByRole("button", {
+        name: "Descargar",
+      }),
+    ).toBeEnabled();
   });
 
   it("exporta la columna Anulado y sus valores Sí/No", async () => {

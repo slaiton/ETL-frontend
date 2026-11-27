@@ -412,6 +412,12 @@ export default function Certificates() {
                   <td style={st.td}>
                     <button
                       style={st.btnAction}
+                      disabled={item.is_cancelled}
+                      title={
+                        item.is_cancelled
+                          ? "No se puede descargar un certificado anulado"
+                          : undefined
+                      }
                       onClick={() => {
                         const url = `${import.meta.env.VITE_API_CERTIFICATE_URL}/new_certificates/${btoa(String(item.id))}/download_view`;
                         window.open(url, "_blank");
