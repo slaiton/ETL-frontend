@@ -61,4 +61,5 @@ export interface Certificate {
   billing_price: string;
   created_at: string;    // ISO datetime
   deleted_at: string | null;
+  is_cancelled: boolean;
 }

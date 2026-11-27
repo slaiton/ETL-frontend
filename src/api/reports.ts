@@ -5,6 +5,7 @@ export interface ReportFilters {
   start_date?: string;
   end_date?: string;
   policy_id?: number;
+  is_cancelled?: boolean;
   page?: number;
   per_page?: number;
 }

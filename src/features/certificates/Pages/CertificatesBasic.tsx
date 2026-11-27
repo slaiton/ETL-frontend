@@ -36,6 +36,7 @@ function exportToExcel(data: Certificate[]) {
     "Fin",
     "Cliente",
     "Valor",
+    "Anulado",
   ];
 
   const rows = data.map((r) => [
@@ -49,6 +50,7 @@ function exportToExcel(data: Certificate[]) {
     r.end_at ? r.end_at.split("T")[0] : "",
     r.customer_id ?? "",
     r.billing_price ?? "",
+    r.is_cancelled ? "Sí" : "No",
   ]);
 
   const csv = [headers, ...rows]
@@ -80,6 +82,7 @@ interface FilterDraft {
   start_date: string;
   end_date: string;
   is_invoiced: string;
+  is_cancelled: string;
 }
 
 const EMPTY: FilterDraft = {
@@ -92,6 +95,7 @@ const EMPTY: FilterDraft = {
   start_date: "",
   end_date: "",
   is_invoiced: "",
+  is_cancelled: "",
 };
 
 function draftToFilters(draft: FilterDraft, page: number): CertificateFilters {
@@ -106,6 +110,8 @@ function draftToFilters(draft: FilterDraft, page: number): CertificateFilters {
   if (draft.start_date) f.start_date = draft.start_date;
   if (draft.end_date) f.end_date = draft.end_date;
   if (draft.is_invoiced !== "") f.is_invoiced = draft.is_invoiced === "true";
+  if (draft.is_cancelled !== "")
+    f.is_cancelled = draft.is_cancelled === "true";
   return f;
 }
 
@@ -295,6 +301,20 @@ export default function Certificates() {
                 <span style={st.chevron}>▾</span>
               </div>
             </Field>
+            <Field label="Anulación">
+              <div style={st.selectWrap}>
+                <select
+                  value={draft.is_cancelled}
+                  onChange={set("is_cancelled")}
+                  style={st.select}
+                >
+                  <option value="">Todos</option>
+                  <option value="true">Anulados</option>
+                  <option value="false">No anulados</option>
+                </select>
+                <span style={st.chevron}>▾</span>
+              </div>
+            </Field>
           </div>
         </div>
 
@@ -349,6 +369,7 @@ export default function Certificates() {
                 "Fin",
                 "Cliente",
                 "Valor",
+                "Anulado",
                 "Descargar",
               ].map((h) => (
                 <th key={h} style={st.th}>
@@ -360,13 +381,13 @@ export default function Certificates() {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={11} style={st.noData}>
+                <td colSpan={12} style={st.noData}>
                   Cargando...
                 </td>
               </tr>
             ) : data.length === 0 ? (
               <tr>
-                <td colSpan={11} style={st.noData}>
+                <td colSpan={12} style={st.noData}>
                   Sin resultados
                 </td>
               </tr>
@@ -387,6 +408,7 @@ export default function Certificates() {
                   </td>
                   <td style={st.td}>{item.customer_id ?? "—"}</td>
                   <td style={st.td}>{item.billing_price ?? "—"}</td>
+                  <td style={st.td}>{item.is_cancelled ? "Sí" : "No"}</td>
                   <td style={st.td}>
                     <button
                       style={st.btnAction}
